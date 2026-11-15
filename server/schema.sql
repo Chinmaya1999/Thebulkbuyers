@@ -118,3 +118,11 @@ ALTER TABLE orders ADD COLUMN IF NOT EXISTS payout_status TEXT NOT NULL DEFAULT 
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS tracking_no TEXT DEFAULT '';
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_notes TEXT DEFAULT '';
 ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_notes TEXT DEFAULT '';
+
+-- Authentication hardening: session revocation, lockout, audit trail
+ALTER TABLE users ADD COLUMN IF NOT EXISTS token_version INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_logins INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
+CREATE TABLE IF NOT EXISTS audit_log(
+  id SERIAL PRIMARY KEY, user_id INTEGER, user_email TEXT, method TEXT, path TEXT, status INTEGER, ip TEXT, created_at TIMESTAMPTZ DEFAULT now()
+);

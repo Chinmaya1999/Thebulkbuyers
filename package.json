@@ -12,7 +12,7 @@
     "dev": "scripts/localdb.sh start && concurrently -n api,web -c yellow,cyan \"node --watch server/server.js\" \"npm --prefix client run dev\"",
     "build": "npm --prefix client install && npm --prefix client run build",
     "seed": "node server/seed/index.js",
-    "test": "node --test server/test/api.test.js",
+    "test": "node --test server/test/",
     "db:start": "scripts/localdb.sh start",
     "db:stop": "scripts/localdb.sh stop",
     "db:status": "scripts/localdb.sh status",

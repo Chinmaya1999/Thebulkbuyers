@@ -67,9 +67,21 @@ Express serves the API **and** the built React app from one process. Product pho
 - **Railway / Fly / any Docker host**: use the `Dockerfile` and set `DATABASE_URL` (+ `DATABASE_SSL=true` if your provider requires it).
 - Serve over HTTPS (auth cookies are `Secure` in production). `SEED_DEMO` stays `false`.
 
+## Security
+- **Authentication:** bcrypt passwords, signed httpOnly `SameSite=Lax` cookie (7 days, `Secure` in production). Changing or admin-resetting a password revokes every other session. 5 failed logins lock the account for 15 minutes (`MAX_LOGIN_FAILS`). Suspending a user signs them out immediately. Self-registration only creates buyers.
+- **Authorization:** role checks on every route (anonymous → 401, wrong role → 403); buyers can only read or change their own RFQs, orders, addresses and wishlist; admin cannot delete, demote or suspend themselves or remove the last admin.
+- **CSRF:** unsafe requests whose `Origin` is cross-site are rejected (add trusted origins with `ALLOWED_ORIGINS`).
+- **Audit trail:** every admin write is logged (`GET /api/admin/audit`).
+- Rate limits: `API_LIMIT` (300/min), `LOGIN_LIMIT` (25/15 min), `REGISTER_LIMIT` (20/h) per IP.
+
 ## Tests
-With the API running against a seeded dev database: `BASE=http://localhost:3000 npm test`
-(auth rules, SQL-injection probe, full RFQ → quote → order → delivery flow, upload validation).
+34 integration tests: auth rules, a role × endpoint authorization matrix, session revocation, lockout, token forgery, CSRF, data isolation between buyers, every admin option (users, products, categories, RFQs/quotes, orders, payments, inquiries, settings, website content, uploads), checkout and input robustness.
+Start the API with raised limits, then run:
+```bash
+API_LIMIT=5000 LOGIN_LIMIT=1000 REGISTER_LIMIT=1000 PORT=3100 node server/server.js
+BASE=http://localhost:3100 npm test
+```
+Tests create a few throw-away records in the dev database; use a development database only.
 
 ## Customise
 - Contact details & brand: `client/src/lib.js` (`BRAND`)

@@ -7,6 +7,7 @@ const { str, isEmail, GSTIN_RE } = require('../util');
 
 const strongEnough = p => typeof p === 'string' && p.length >= 8 && p.length <= 100 && /[a-zA-Z]/.test(p) && /\d/.test(p);
 const code = () => 'TBB' + crypto.randomBytes(3).toString('hex').toUpperCase();
+const MAX_FAILS = Number(process.env.MAX_LOGIN_FAILS || 5);
 const DUMMY = '$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvali';
 
 router.post('/register', async (req, res) => {
@@ -31,11 +32,15 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const email = str(req.body?.email, 120).toLowerCase(), password = req.body?.password;
   const u = await q.get('SELECT * FROM users WHERE lower(email)=?', email);
+  if (u && u.locked_until && new Date(u.locked_until) > new Date()) return res.status(429).json({ error: 'Too many failed attempts. This account is locked for 15 minutes.' });
   const ok = bcrypt.compareSync(String(password || ''), u ? u.password_hash : DUMMY);
-  if (!u || !ok) return res.status(401).json({ error: 'Incorrect email or password' });
+  if (!u || !ok) {
+    if (u) await q.run("UPDATE users SET failed_logins=failed_logins+1, locked_until=CASE WHEN failed_logins+1>=? THEN now()+interval '15 minutes' ELSE locked_until END WHERE id=?", MAX_FAILS, u.id);
+    return res.status(401).json({ error: 'Incorrect email or password' });
+  }
   if (u && !['admin', 'buyer'].includes(u.role)) return res.status(403).json({ error: 'This account type is managed by the admin team.' });
   if (u.status === 'suspended') return res.status(403).json({ error: 'This account is suspended. Contact support.' });
-  await q.run('UPDATE users SET last_login=now() WHERE id=?', u.id);
+  await q.run('UPDATE users SET last_login=now(), failed_logins=0, locked_until=NULL WHERE id=?', u.id);
   setCookie(res, sign(u));
   res.json({ ok: true, role: u.role });
 });
@@ -62,7 +67,8 @@ router.put('/password', requireAuth, async (req, res) => {
   const u = await q.get('SELECT password_hash FROM users WHERE id=?', req.user.id);
   if (!bcrypt.compareSync(String(current || ''), u.password_hash)) return res.status(400).json({ error: 'Current password is wrong' });
   if (!strongEnough(next)) return res.status(400).json({ error: 'New password needs 8+ characters with letters and numbers' });
-  await q.run('UPDATE users SET password_hash=? WHERE id=?', bcrypt.hashSync(next, 10), req.user.id);
+  const row = await q.get('UPDATE users SET password_hash=?, token_version=token_version+1 WHERE id=? RETURNING *', bcrypt.hashSync(next, 10), req.user.id);
+  setCookie(res, sign(row)); // keep this device signed in; every other session is revoked
   res.json({ ok: true });
 });
 

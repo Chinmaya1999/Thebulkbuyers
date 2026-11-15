@@ -41,11 +41,22 @@ async function main() {
   app.use(compression());
   app.use(express.json({ limit: '200kb' }));
   app.use(cookieParser());
+  // NUL bytes are never valid input (and make Postgres throw) — reject them up front.
+  app.use((req, res, next) => (/%00/i.test(req.url) ? res.status(400).json({ error: 'Invalid request' }) : next()));
 
   const lim = (windowMs, limit, extra = {}) => rateLimit({ windowMs, limit, standardHeaders: true, legacyHeaders: false, ...extra });
-  app.use('/api', lim(60_000, 300));
-  app.use('/api/auth/login', lim(15 * 60_000, 25, { message: { error: 'Too many attempts, try again later.' } }));
-  app.use('/api/auth/register', lim(60 * 60_000, 20));
+  app.use('/api', lim(60_000, Number(process.env.API_LIMIT || 300)));
+  // CSRF defence in depth (cookies are SameSite=Lax): browsers send Origin on unsafe requests; reject cross-site ones.
+  const allowed = new Set((process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean));
+  app.use('/api', (req, res, next) => {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+    const o = req.get('origin');
+    if (!o) return next();
+    try { if (new URL(o).host === req.get('host') || allowed.has(o)) return next(); } catch { /* fall through */ }
+    res.status(403).json({ error: 'Cross-site request blocked' });
+  });
+  app.use('/api/auth/login', lim(15 * 60_000, Number(process.env.LOGIN_LIMIT || 25), { message: { error: 'Too many attempts, try again later.' } }));
+  app.use('/api/auth/register', lim(60 * 60_000, Number(process.env.REGISTER_LIMIT || 20)));
 
   app.get('/healthz', async (_, res) => { await q.get('SELECT 1'); res.json({ ok: true }); });
   app.use('/api/auth', require('./routes/auth'));
@@ -75,6 +86,7 @@ async function main() {
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
+    if (['22021', '22P05', '22P02', '22003'].includes(err.code)) err.status = 400, err.message = 'Invalid input'; // bad bytes / types / out-of-range from the client
     if (!err.status) console.error(err);
     res.status(err.status || 500).json({ error: err.status && err.status < 500 ? err.message : (PROD ? 'Something went wrong' : err.message) });
   });

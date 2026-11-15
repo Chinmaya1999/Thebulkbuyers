@@ -10,6 +10,12 @@ const { acceptQuote, quoteForAccept } = require('../workflow');
 const { SITE_DEFAULTS, getSite, saveSite } = require('../site');
 const bad = (m, status = 400) => Object.assign(new Error(m), { status });
 router.use(requireRole('admin'));
+// Audit trail: every admin write (POST/PUT/DELETE) is recorded with who, what and the result.
+router.use((req, res, next) => {
+  if (req.method !== 'GET') res.on('finish', () => q.run('INSERT INTO audit_log(user_id,user_email,method,path,status,ip) VALUES(?,?,?,?,?,?)', req.user.id, req.user.email, req.method, (req.baseUrl + req.path).slice(0, 200), res.statusCode, req.ip).catch(() => {}));
+  next();
+});
+router.get('/audit', async (req, res) => res.json(await q.all('SELECT * FROM audit_log ORDER BY id DESC LIMIT 300')));
 
 router.get('/stats', async (req, res) => {
   const [users, products, rfqs, orders, inquiries, monthly, signups, byStatus, byCategory, topSellers, byChannel] = await Promise.all([
@@ -69,7 +75,7 @@ router.put('/users/:id', async (req, res) => {
 });
 router.put('/users/:id/password', async (req, res) => {
   if (!strong(req.body?.password)) return res.status(400).json({ error: 'Password needs 8+ characters with letters and numbers' });
-  const r = await q.run('UPDATE users SET password_hash=? WHERE id=?', bcrypt.hashSync(req.body.password, 10), int(req.params.id));
+  const r = await q.run('UPDATE users SET password_hash=?, token_version=token_version+1, failed_logins=0, locked_until=NULL WHERE id=?', bcrypt.hashSync(req.body.password, 10), int(req.params.id)); // also revokes their sessions + unlocks
   r.changes ? res.json({ ok: true }) : res.status(404).json({ error: 'User not found' });
 });
 router.delete('/users/:id', async (req, res) => {
