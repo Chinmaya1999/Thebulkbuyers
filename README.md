@@ -76,4 +76,3 @@ With the API running against a seeded dev database: `BASE=http://localhost:3000 
 - Sample catalogue: `server/seed/catalogue-source.js`; product photos are Unsplash links (sellers can upload their own).
 - Payments/escrow are not included — orders track status only.
 
-`_legacy_static/` holds the earlier static-HTML + SQLite version; delete it when you no longer need it.

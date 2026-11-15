@@ -1,7 +1,6 @@
 node_modules
 client/node_modules
 client/dist
-_legacy_static
 .git
 *.log
 .env
