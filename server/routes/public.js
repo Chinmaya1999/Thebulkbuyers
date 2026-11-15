@@ -80,6 +80,13 @@ router.get('/facets', async (req, res) => {
   res.json({ gender, age, season, pattern, brand, gst, color, size, fabric, manufacturer: seller.map(s => ({ v: s.v, label: s.label, n: s.n })), price: { min: Math.floor(range.lo || 0), max: Math.ceil(range.hi || 0), moq: range.moq || 0 } });
 });
 
+// Quick order: resolve SKUs to live products (up to 200 at a time). Unknown/hidden SKUs are simply absent from the result.
+router.get('/products/by-sku', async (req, res) => {
+  const skus = [...new Set(String(req.query.skus || '').split(',').map(x => x.trim().toUpperCase()).filter(Boolean))].slice(0, 200);
+  if (!skus.length) return res.json([]);
+  res.json((await q.all(`SELECT ${CARD} ${FROM} WHERE p.status='approved' AND upper(p.sku) = ANY(?::text[])`, skus)).map(shape));
+});
+
 router.get('/products/:slug', optionalAuth, async (req, res) => {
   const p = await q.get(`SELECT ${CARD} ${FROM} WHERE p.slug=? AND p.status='approved'`, req.params.slug);
   if (!p) return res.status(404).json({ error: 'Product not found' });

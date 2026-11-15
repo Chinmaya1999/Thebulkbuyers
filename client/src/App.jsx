@@ -7,6 +7,7 @@ import Product from './pages/Product.jsx';
 import CartPage from './pages/Cart.jsx';
 import Checkout from './pages/Checkout.jsx';
 import Directory from './pages/Directory.jsx';
+import QuickOrder from './pages/QuickOrder.jsx';
 import { About, Contact, NotFound } from './pages/Static.jsx';
 import { Login, Register } from './pages/Auth.jsx';
 import { useAuth } from './auth.jsx';
@@ -19,7 +20,7 @@ export default function App() {
   return <Routes>
     <Route element={<Layout />}>
       <Route path="/" element={<Home />} /><Route path="/shop" element={<Listing />} /><Route path="/product" element={<Product />} />
-      <Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<Checkout />} /><Route path="/categories" element={<Directory />} />
+      <Route path="/cart" element={<CartPage />} /><Route path="/checkout" element={<Checkout />} /><Route path="/categories" element={<Directory />} /><Route path="/quick-order" element={<QuickOrder />} />
       <Route path="/about" element={<About />} /><Route path="/contact" element={<Contact />} /><Route path="/login" element={<Login />} /><Route path="/register" element={<Register />} />
       <Route path="*" element={<NotFound />} />
     </Route>

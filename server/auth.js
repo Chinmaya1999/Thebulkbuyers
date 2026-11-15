@@ -13,7 +13,7 @@ async function load(req) {
   if (!t) return null;
   try {
     const { id, tv } = jwt.verify(t, process.env.JWT_SECRET);
-    const u = await q.get('SELECT id,name,email,phone,company,country,gst,gst_legal_name,role,status,referral_code,created_at,token_version FROM users WHERE id=?', id);
+    const u = await q.get('SELECT id,name,email,phone,company,country,gst,gst_legal_name,role,status,referral_code,created_at,token_version,discount_pct FROM users WHERE id=?', id);
     if (u && (tv || 0) !== u.token_version) return null; // session revoked
     // Sellers/agents are records managed by admin — they do not sign in.
     if (!u || u.status === 'suspended' || !['admin', 'buyer'].includes(u.role)) return null;

@@ -333,6 +333,52 @@ test('admin: inquiries, settings, site content, stats, upload', async () => {
   assert.equal((await a('POST', '/admin/upload', new FormData())).status, 400);
 });
 
+/* ---------------- B2B PRICING & QUICK ORDER ---------------- */
+test('quick order: SKU lookup resolves live products only', async () => {
+  const pub = await client(), a = await admin(), list = (await pub('GET', '/products?limit=3')).data.items;
+  const skus = list.map(p => p.sku);
+  const got = (await pub('GET', `/products/by-sku?skus=${skus.join(',').toLowerCase()},NOPE-000`)).data;
+  assert.equal(got.length, skus.length, 'case-insensitive, unknown SKUs omitted'); assert.ok(got.every(p => Array.isArray(p.size_options) && !('purchase_price' in p)), 'variant data present, purchase price private');
+  assert.deepEqual((await pub('GET', '/products/by-sku')).data, []);
+  const hidden = list[0]; await a('PUT', `/admin/products/${hidden.id}`, { status: 'rejected' });
+  assert.ok(!(await pub('GET', `/products/by-sku?skus=${hidden.sku}`)).data.length, 'hidden products are not orderable by SKU');
+  await a('PUT', `/admin/products/${hidden.id}`, { status: 'approved' });
+  assert.equal((await pub('GET', `/products/${hidden.slug}`)).status, 200, 'route order: /products/:slug still works');
+});
+
+test('customer-specific pricing: admin sets % off wholesale; cart and checkout apply it server-side', async () => {
+  const a = await admin(), B = await newBuyer(), anon = await client(), me = (await B('GET', '/auth/me')).data.user;
+  const p = (await anon('GET', '/products?limit=100')).data.items.find(x => x.stock_qty === 0 && x.moq >= 10);
+  assert.ok(p, 'a made-to-order product exists');
+  const whole = { items: [{ productId: p.id, qty: p.moq, size: 'M', color: '#111' }] }, retail = { items: [{ productId: p.id, qty: 1, size: 'M', color: '#111' }] };
+  const base = (await anon('POST', '/cart/price', whole)).data.products[0];
+  assert.equal(me.discount_pct, 0); assert.equal((await B('POST', '/cart/price', whole)).data.products[0].unit, base.unit, 'no discount by default');
+  for (const bad of [-1, 31, 'abc']) assert.equal((await a('PUT', `/admin/users/${me.id}`, { discount_pct: bad })).status, 400, 'discount ' + bad);
+  assert.equal((await a('PUT', `/admin/users/${me.id}`, { discount_pct: 10 })).status, 200);
+  const d = (await B('POST', '/cart/price', whole)).data, line = d.products[0], r2 = n => Math.round(n * 100) / 100;
+  assert.equal(line.unit, r2(base.unit * 0.9), '10% off the tier price'); assert.equal(line.customerDiscountPct, 10); assert.ok(d.totals.customerSavings > 0);
+  assert.equal(line.taxable, r2(line.unit * p.moq)); assert.equal(line.gst, r2(line.taxable * line.gst_rate / 100), 'GST on the discounted amount');
+  assert.equal((await anon('POST', '/cart/price', whole)).data.products[0].unit, base.unit, 'anonymous price unaffected');
+  assert.equal((await B('POST', '/cart/price', retail)).data.products[0].unit, p.retail_price, 'retail (below MOQ) is not discounted');
+  const ship = { name: 'Buyer', phone: '9876543210', address: '12 Test Street', city: 'Pune' };
+  const o = await B('POST', '/orders/direct', { items: whole.items, shipping: ship }); assert.equal(o.status, 201);
+  const row = (await B('GET', '/orders')).data.find(x => x.id === o.data.orders[0].id); assert.equal(row.unit_price, line.unit, 'order stored at the discounted price'); assert.equal(row.channel, 'wholesale');
+  assert.equal((await a('PUT', `/admin/users/${me.id}`, { discount_pct: 0 })).status, 200);
+  assert.equal((await B('POST', '/cart/price', whole)).data.products[0].unit, base.unit, 'removing the discount restores list price');
+  assert.equal((await a('POST', '/admin/users', { name: 'Disc', email: `d${uniq()}@test.com`, role: 'buyer', password: 'Passw0rd1', discount_pct: 99 })).status, 400);
+});
+
+test('dashboard data: orders expose payment status so invoices and outstanding balance are accurate', async () => {
+  const a = await admin(), B = await newBuyer(), bid = (await B('GET', '/auth/me')).data.user.id, p = await firstProduct();
+  const id = (await a('POST', '/admin/orders', { buyer_id: bid, product_id: p.id, quantity: 100, unit_price: 100, gst_rate: 5 })).data.id;
+  const get = async () => (await B('GET', '/orders')).data.find(o => o.id === id);
+  let o = await get(); assert.equal(o.payment_status, 'unpaid'); assert.equal(o.paid_amount, 0); assert.equal(o.total + o.gst_amount, 10500);
+  await a('PUT', `/admin/orders/${id}`, { payment_status: 'partial', paid_amount: 4000 }); o = await get(); assert.equal(o.payment_status, 'partial'); assert.equal(o.total + o.gst_amount - o.paid_amount, 6500, 'outstanding balance');
+  await a('PUT', `/admin/orders/${id}`, { admin_notes: 'buyer is slow to pay', commission: 123, payout_status: 'paid' }); o = await get();
+  for (const k of ['admin_notes', 'commission', 'payout_status']) assert.ok(!(k in o), `${k} must not be visible to the buyer`);
+  assert.equal((await a('GET', '/orders')).data.find(x => x.id === id).admin_notes, 'buyer is slow to pay', 'admin still sees it');
+});
+
 /* ---------------- BUYER FLOWS ---------------- */
 test('buyer: checkout validation, wishlist, notifications, addresses, GST profile', async () => {
   const B = await newBuyer(), pub = await client(), p = await firstProduct(), ship = { name: 'Buyer', phone: '9876543210', address: '12 Test Street', city: 'Pune', pincode: '411001' };

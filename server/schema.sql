@@ -126,3 +126,6 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMPTZ;
 CREATE TABLE IF NOT EXISTS audit_log(
   id SERIAL PRIMARY KEY, user_id INTEGER, user_email TEXT, method TEXT, path TEXT, status INTEGER, ip TEXT, created_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Customer-specific pricing: negotiated % off the wholesale tier price, set by admin per buyer
+ALTER TABLE users ADD COLUMN IF NOT EXISTS discount_pct DOUBLE PRECISION NOT NULL DEFAULT 0;

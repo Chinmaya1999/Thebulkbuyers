@@ -1,7 +1,7 @@
 // RFQ → quote → order workflow, notifications and wishlist (all authenticated).
 const router = require('express').Router();
 const { q, getSetting } = require('../db');
-const { requireAuth, requireRole, notify, notifyAdmins } = require('../auth');
+const { requireAuth, requireRole, optionalAuth, notify, notifyAdmins } = require('../auth');
 const { str, num, int, GSTIN_RE } = require('../util');
 const { priceCart, r2 } = require('../pricing');
 const { acceptQuote, quoteForAccept } = require('../workflow');
@@ -59,7 +59,7 @@ router.post('/quotes/:id/accept', requireRole('buyer'), async (req, res) => {
 /* ---------- Cart pricing + checkout (wholesale ≥ MOQ, retail below) ---------- */
 const bad = m => Object.assign(new Error(m), { status: 400 });
 // Authoritative totals for the cart UI: tier pricing, GST, savings, stock validation.
-router.post('/cart/price', async (req, res) => res.json(await priceCart(req.body?.items)));
+router.post('/cart/price', optionalAuth, async (req, res) => res.json(await priceCart(req.body?.items, q, req.user?.discount_pct)));
 
 const addr = a => ({ name: str(a?.name, 80), phone: str(a?.phone, 30), line1: str(a?.line1 ?? a?.address, 300), line2: str(a?.line2, 120), city: str(a?.city, 80), state: str(a?.state, 60), pincode: str(a?.pincode, 12), country: str(a?.country, 60) || 'India' });
 const variantText = lines => lines.filter(l => l.qty).map(l => [l.color && l.color, l.size, '× ' + l.qty].filter(Boolean).join(' ')).join(' · ').slice(0, 900);
@@ -73,7 +73,7 @@ router.post('/orders/direct', requireRole('buyer'), async (req, res) => {
   const method = ['standard', 'pickup'].includes(body.shipping_method) ? body.shipping_method : 'standard', payment = ['cod', 'bank_transfer'].includes(body.payment_method) ? body.payment_method : 'cod';
   const pct = num(await getSetting('commission_pct', '3'), 3) / 100;
   const out = await q.tx(async t => {
-    const priced = await priceCart(body.items, t);
+    const priced = await priceCart(body.items, t, req.user.discount_pct);
     if (!priced.products.length) throw bad('One or more items are no longer available');
     if (priced.issues.length) throw bad(priced.issues[0].message);
     const made = [];
@@ -100,7 +100,10 @@ router.get('/orders', requireRole('buyer', 'admin'), async (req, res) => {
   const sql = `SELECT o.*, b.name buyer_name, b.company buyer_company, b.gst buyer_gst, b.email buyer_email, s.company seller_company, s.name seller_name, s.gst seller_gst, s.country seller_country,
       pr.slug product_slug, pr.image product_image, pr.sku product_sku, pr.hsn_code product_hsn, pr.gst_rate product_gst_rate
     FROM orders o JOIN users b ON b.id=o.buyer_id JOIN users s ON s.id=o.seller_id LEFT JOIN products pr ON pr.id=o.product_id ${col ? 'WHERE ' + col : ''} ORDER BY o.id DESC LIMIT 500`;
-  res.json(col ? await q.all(sql, req.user.id) : await q.all(sql));
+  const rows = col ? await q.all(sql, req.user.id) : await q.all(sql);
+  // internal fields (admin notes, platform commission, supplier payout) are never shown to buyers
+  if (req.user.role === 'buyer') rows.forEach(o => { delete o.admin_notes; delete o.commission; delete o.payout_status; });
+  res.json(rows);
 });
 
 router.put('/orders/:id/status', requireRole('buyer', 'admin'), async (req, res) => {

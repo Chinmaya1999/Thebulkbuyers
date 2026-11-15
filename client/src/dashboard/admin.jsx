@@ -46,6 +46,7 @@ function UserModal({ u, onClose, onSaved }) {
       <Field label="Status"><select name="status" defaultValue={u.status || 'active'}><option value="active">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option></select></Field></div>
     <div className="row2"><Field label="Company"><input name="company" maxLength={120} defaultValue={u.company || ''} /></Field><Field label="Phone"><input name="phone" maxLength={30} defaultValue={u.phone || ''} /></Field></div>
     <div className="row2"><Field label="Country"><input name="country" maxLength={60} defaultValue={u.country || 'India'} /></Field><Field label="GSTIN"><input name="gst" maxLength={20} defaultValue={u.gst || ''} /></Field></div>
+    <Field label="Customer-specific discount on wholesale prices (%) — buyers only"><input name="discount_pct" type="number" min="0" max="30" step="0.5" defaultValue={u.discount_pct || 0} /></Field>
     {!editing && <Field label="Password (8+ characters, letters and numbers)"><input name="password" type="text" required minLength={8} autoComplete="off" /></Field>}
     <Field label="Internal notes (never shown to the user)"><textarea name="admin_notes" rows="2" maxLength={1000} defaultValue={u.admin_notes || ''} /></Field>
     <div className="form-err" role="alert">{err}</div><button className="btn btn-primary" type="submit" disabled={busy}>{editing ? 'Save changes' : 'Create account'}</button></form></Modal>;
@@ -62,7 +63,7 @@ export function AdminUsers({ user }) {
       <select value={role} onChange={e => setRole(e.target.value)}><option value="">All roles</option>{['buyer', 'seller', 'agent', 'admin'].map(x => <option key={x}>{x}</option>)}</select></div>
     <Table cols={['User', 'Role', 'Company', 'Status', 'Orders', 'Joined', '']} count={rows.length}>{rows.map(u => <tr key={u.id}>
       <td><div className="who"><div className="avatar" style={{ width: 36, height: 36 }}>{u.name[0]}</div><div>{u.name}<small>{u.email}</small></div></div></td>
-      <td><Pill s={u.role} /></td><td>{u.company || '—'}<small>{u.country}{u.gst ? ' · GST ' + u.gst : ''}</small></td><td><Pill s={u.status} /></td><td>{u.orders}</td><td>{dt(u.created_at)}</td>
+      <td><Pill s={u.role} /></td><td>{u.company || '—'}<small>{u.country}{u.gst ? ' · GST ' + u.gst : ''}{u.discount_pct > 0 ? ' · ' + u.discount_pct + '% price discount' : ''}</small></td><td><Pill s={u.status} /></td><td>{u.orders}</td><td>{dt(u.created_at)}</td>
       <td><div className="act"><button className="b" onClick={() => setEdit(u)}>Edit</button>
         {u.status !== 'active' && <button className="b p" onClick={() => set(u.id, 'active')}>{u.status === 'pending' ? 'Verify' : 'Reactivate'}</button>}
         {u.status !== 'suspended' && u.id !== user.id && <button className="b d" onClick={() => set(u.id, 'suspended')}>Suspend</button>}

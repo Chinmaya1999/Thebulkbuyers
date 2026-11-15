@@ -17,6 +17,9 @@ Luxury-editorial B2B wholesale experience (palette `#F8F7F4 · #171717 · #B88A5
 - **Customer dashboard:** overview, orders, order tracking, quotations, invoices (print/PDF), wishlist, saved products, reorder, addresses, business profile, GST details, account settings
 - Mobile: search overlay, category drawer, filter drawer, bottom navigation, sticky add-to-cart bar
 
+- **Quick order** (`/quick-order`): paste or upload a CSV of `sku, qty, size, colour`; lines are matched to live products and added to the cart together (the server still prices and validates everything).
+- **Customer-specific pricing:** admin can set a 0–30 % discount per buyer (Users → Edit); it applies to wholesale (≥ MOQ) prices in the cart and at checkout.
+
 ### Pricing rules (server: `server/pricing.js`)
 Quantities are summed **per product across all variants**. At/above the product's MOQ the wholesale tier applies (MOQ → max price, 2×MOQ → midpoint, 5×MOQ → min price); below MOQ the retail price applies. GST is added per product at its `gst_rate`. Stock (`stock_qty`, 0 = made to order) is enforced and decremented at checkout.
 Payments: pay on delivery or bank transfer are *recorded*; no online gateway is integrated.

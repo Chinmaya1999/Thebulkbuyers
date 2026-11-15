@@ -9,6 +9,7 @@ export function Summary({ t, pricing, cta }) {
     {!t ? <div className="skel" style={{ height: 160 }} /> : <div className="sumbox" style={{ opacity: pricing ? .55 : 1, transition: 'opacity .2s' }}>
       <div><span>Quantity</span><span className="num">{t.qty.toLocaleString('en-IN')} pcs · {t.items} variants</span></div>
       <div><span>Subtotal (excl. GST)</span><span className="num">{money2(t.subtotal)}</span></div>
+      {t.customerSavings > 0 && <div className="save"><span>Your negotiated discount</span><span className="num">− {money2(t.customerSavings)}</span></div>}
       {t.bulkSavings > 0 && <div className="save"><span>Bulk discount applied</span><span className="num">− {money2(t.bulkSavings)}</span></div>}
       <div><span>GST</span><span className="num">{money2(t.gst)}</span></div>
       <div><span>Shipping</span><span className="mute">Confirmed on dispatch</span></div>

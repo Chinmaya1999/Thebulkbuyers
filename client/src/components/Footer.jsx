@@ -11,7 +11,7 @@ export default function Footer() {
     <div className="fgrid">
       <div><Logo light /><p className="legal">{F.legal.split('\n').map((l, i) => <span key={i}>{i > 0 && <br />}{l}</span>)}</p></div>
       <div><h5>Shop</h5><ul><li><Link to="/shop?sort=new">New arrivals</Link></li><li><Link to="/shop?sort=bestseller">Best sellers</Link></li><li><Link to="/shop?sort=deal">Wholesale deals</Link></li><li><Link to="/categories">All categories</Link></li></ul></div>
-      <div><h5>For business</h5><ul><li><Link to="/register?role=buyer">Create business account</Link></li><li><Link to="/dashboard/quotations">Request a quotation</Link></li></ul></div>
+      <div><h5>For business</h5><ul><li><Link to="/register?role=buyer">Create business account</Link></li><li><Link to="/quick-order">Quick order by SKU / CSV</Link></li><li><Link to="/dashboard/quotations">Request a quotation</Link></li></ul></div>
       <div><h5>Company</h5><ul><li><Link to="/about">About</Link></li><li><Link to="/contact">Contact</Link></li><li><a href="https://bulkbuyers.in" target="_blank" rel="noreferrer">Corporate site</a></li><li><a href={'tel:' + C.phone.replace(/\s/g, '')}>{C.phone}</a></li><li><a href={'mailto:' + C.email}>{C.email}</a></li></ul></div>
     </div>
     <div className="fbot"><span>© {new Date().getFullYear()} Bulk Buyers. All rights reserved.</span><span>Wholesale garments · apparel · footwear · accessories</span></div>

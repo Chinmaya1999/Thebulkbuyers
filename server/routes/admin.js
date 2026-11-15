@@ -40,18 +40,19 @@ const ROLES = ['buyer', 'seller', 'agent', 'admin'], STATUSES = ['active', 'pend
 const strong = p => typeof p === 'string' && p.length >= 8 && p.length <= 100 && /[a-zA-Z]/.test(p) && /\d/.test(p);
 const refCode = () => 'TBB' + crypto.randomBytes(3).toString('hex').toUpperCase();
 async function userFields(b, selfId = 0) {
-  const f = { name: str(b.name, 80), email: str(b.email, 120).toLowerCase(), phone: str(b.phone, 30), company: str(b.company, 120), country: str(b.country, 60) || 'India', gst: str(b.gst, 20).toUpperCase(), role: b.role, status: b.status || 'active', admin_notes: str(b.admin_notes, 1000) };
+  const f = { name: str(b.name, 80), email: str(b.email, 120).toLowerCase(), phone: str(b.phone, 30), company: str(b.company, 120), country: str(b.country, 60) || 'India', gst: str(b.gst, 20).toUpperCase(), role: b.role, status: b.status || 'active', admin_notes: str(b.admin_notes, 1000), discount_pct: Math.min(30, Math.max(0, num(b.discount_pct))) };
   let err = null;
   if (f.name.length < 2) err = 'Name is required';
   else if (!isEmail(f.email)) err = 'Enter a valid email';
   else if (!ROLES.includes(f.role)) err = 'Invalid role';
   else if (!STATUSES.includes(f.status)) err = 'Invalid status';
+  else if (b.discount_pct !== undefined && b.discount_pct !== '' && !(num(b.discount_pct, -1) >= 0 && num(b.discount_pct) <= 30)) err = 'Customer discount must be between 0 and 30%';
   else if (f.gst && !GSTIN_RE.test(f.gst)) err = 'GSTIN looks invalid — 15 characters, e.g. 29ABCDE1234F1Z5';
   else if (await q.get('SELECT id FROM users WHERE lower(email)=? AND id<>?', f.email, selfId)) err = 'Another account already uses this email';
   return { f, err };
 }
 router.get('/users', async (req, res) => {
-  res.json(await q.all(`SELECT id,name,email,phone,company,country,gst,role,status,admin_notes,created_at,last_login,
+  res.json(await q.all(`SELECT id,name,email,phone,company,country,gst,role,status,admin_notes,discount_pct,created_at,last_login,
     (SELECT COUNT(*) FROM orders WHERE buyer_id=users.id OR seller_id=users.id) orders,
     (SELECT COUNT(*) FROM products WHERE seller_id=users.id) products FROM users ORDER BY id DESC LIMIT 1000`));
 });
@@ -59,8 +60,8 @@ router.post('/users', async (req, res) => {
   const { f, err } = await userFields(req.body || {});
   if (err) return res.status(400).json({ error: err });
   if (!strong(req.body?.password)) return res.status(400).json({ error: 'Password needs 8+ characters with letters and numbers' });
-  const id = await q.insert(`INSERT INTO users(name,email,phone,company,country,gst,password_hash,role,status,referral_code,admin_notes) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
-    f.name, f.email, f.phone, f.company, f.country, f.gst, bcrypt.hashSync(req.body.password, 10), f.role, f.status, refCode(), f.admin_notes);
+  const id = await q.insert(`INSERT INTO users(name,email,phone,company,country,gst,password_hash,role,status,referral_code,admin_notes,discount_pct) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`,
+    f.name, f.email, f.phone, f.company, f.country, f.gst, bcrypt.hashSync(req.body.password, 10), f.role, f.status, refCode(), f.admin_notes, f.discount_pct);
   res.status(201).json({ ok: true, id });
 });
 router.put('/users/:id', async (req, res) => {
@@ -70,7 +71,7 @@ router.put('/users/:id', async (req, res) => {
   if (err) return res.status(400).json({ error: err });
   if (u.id === req.user.id && (f.role !== 'admin' || f.status !== 'active')) return res.status(400).json({ error: 'You cannot demote or suspend your own account' });
   if (u.role === 'admin' && f.role !== 'admin' && (await q.get("SELECT COUNT(*) n FROM users WHERE role='admin' AND status='active'")).n < 2) return res.status(400).json({ error: 'At least one active admin is required' });
-  await q.run('UPDATE users SET name=?,email=?,phone=?,company=?,country=?,gst=?,role=?,status=?,admin_notes=? WHERE id=?', f.name, f.email, f.phone, f.company, f.country, f.gst, f.role, f.status, f.admin_notes, id);
+  await q.run('UPDATE users SET name=?,email=?,phone=?,company=?,country=?,gst=?,role=?,status=?,admin_notes=?,discount_pct=? WHERE id=?', f.name, f.email, f.phone, f.company, f.country, f.gst, f.role, f.status, f.admin_notes, f.discount_pct, id);
   res.json({ ok: true });
 });
 router.put('/users/:id/password', async (req, res) => {
