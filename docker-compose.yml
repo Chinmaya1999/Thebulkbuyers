@@ -1,0 +1,18 @@
+# Local stack:  docker compose up --build   →  http://localhost:3000
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: tbb, POSTGRES_PASSWORD: tbb, POSTGRES_DB: bulkbuyers }
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U tbb -d bulkbuyers"], interval: 5s, retries: 10 }
+  app:
+    build: .
+    depends_on: { db: { condition: service_healthy } }
+    ports: ["3000:3000"]
+    environment:
+      DATABASE_URL: postgres://tbb:tbb@db:5432/bulkbuyers
+      NODE_ENV: production
+      SEED_DEMO: "true"          # set to "false" for a real launch
+      ADMIN_EMAIL: admin@thebulkbuyers.com
+      ADMIN_PASSWORD: ChangeMe-123
+volumes: { pgdata: {} }

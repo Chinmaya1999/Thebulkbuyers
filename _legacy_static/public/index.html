@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Bulk Buyers — Wholesale Garments & Apparel Marketplace</title>
+<meta name="description" content="India's B2B marketplace for garments & apparel. Post an RFQ, compare verified manufacturer quotes, and track bulk orders — T-shirts, hoodies, denim, uniforms & more.">
+<meta name="theme-color" content="#0a0a0c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%23ff5a2c'/%3E%3Cpath d='M16 12l-8 6 4 6 4-2v16h16V22l4 2 4-6-8-6c-1 3-4 5-8 5s-7-2-8-5z' fill='%23120600'/%3E%3C/svg%3E">
+</head>
+<body data-page="home">
+<div id="pre"><div class="pw"><span>The</span><span>Bulk</span><span>Buyers</span></div><div class="bar"></div></div>
+<header id="nav"></header>
+
+<section class="hero">
+  <canvas id="hero-canvas" aria-label="Interactive 3D T-shirt. Drag to rotate."></canvas>
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">B2B Garments &amp; Apparel Marketplace</span>
+      <h1 class="h1 split" style="margin-top:22px">Bulk apparel,<br>sourced <em>smarter.</em></h1>
+      <p class="lead">Post one RFQ. Receive competing quotes from verified Indian manufacturers. Confirm, track and receive — T-shirts, hoodies, denim, uniforms and private label at wholesale scale.</p>
+      <div class="hero-actions"><a href="/shop" class="btn btn-primary">Browse catalogue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a href="/register?role=buyer" class="btn btn-ghost">Post an RFQ</a></div>
+      <div class="hero-meta">
+        <div><b data-count="0" id="s-products">0</b><span>Styles listed</span></div>
+        <div><b data-count="0" id="s-sellers">0</b><span>Verified sellers</span></div>
+        <div><b data-count="0" id="s-orders">0</b><span>Orders placed</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="swatches" role="group" aria-label="Change shirt colour"><small>Colour</small>
+    <button class="sw on" data-c="#f4f1ea" style="background:#f4f1ea" aria-label="Ivory"></button><button class="sw" data-c="#111114" style="background:#111114" aria-label="Black"></button>
+    <button class="sw" data-c="#1f3a5f" style="background:#1f3a5f" aria-label="Navy"></button><button class="sw" data-c="#b3262d" style="background:#b3262d" aria-label="Red"></button>
+    <button class="sw" data-c="#2f6b4f" style="background:#2f6b4f" aria-label="Green"></button><button class="sw" data-c="#e0a82e" style="background:#e0a82e" aria-label="Mustard"></button></div>
+  <div class="scroll-cue">Scroll</div>
+</section>
+
+<div class="marquee" aria-hidden="true"><div class="track" id="marquee"></div></div>
+
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow">Shop by category</span><h2 class="h2 split">Every garment,<br><em>one marketplace</em></h2></div><a href="/shop" class="btn btn-ghost">View all products</a></div>
+    <div class="cats" id="cats"></div>
+  </div>
+</section>
+
+<section class="section light" id="how">
+  <div class="wrap">
+    <div class="center"><span class="eyebrow">How it works</span><h2 class="h2 split" style="margin-top:14px">From enquiry to<br><em>doorstep in 4 steps</em></h2><p class="lead muted" style="margin-top:20px">One transparent flow for buyers and manufacturers — no middlemen, no guesswork.</p></div>
+    <div class="steps" style="margin-top:70px">
+      <div class="step"><h3>Post your RFQ</h3><p>Tell us the style, quantity, target price and destination. Free for buyers.</p></div>
+      <div class="step"><h3>Compare quotes</h3><p>Verified manufacturers bid with price and lead time. Pick the best fit.</p></div>
+      <div class="step"><h3>Confirm the order</h3><p>Accept a quote and the order is created instantly with all terms locked.</p></div>
+      <div class="step"><h3>Track to delivery</h3><p>Production, quality check, shipment — follow every stage from your dashboard.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="sec-head"><div><span class="eyebrow">Trending now</span><h2 class="h2 split">Wholesale<br><em>best-sellers</em></h2></div><a href="/shop" class="btn btn-ghost">Full catalogue</a></div>
+    <div class="pgrid" id="featured"></div>
+  </div>
+</section>
+
+<section class="section sand">
+  <div class="wrap split2">
+    <div data-reveal="left">
+      <span class="eyebrow">Built for trust</span>
+      <h2 class="h2" style="margin-top:14px">Quality you can <em>verify</em> before you commit</h2>
+      <p class="lead muted" style="margin-top:20px">Every seller is verified by our team and every listing is reviewed before it goes live.</p>
+      <ul class="list"><li><span><b>Verified manufacturers</b> — documents and capacity checked before listing.</span></li><li><span><b>Transparent MOQ &amp; pricing</b> — see ranges and minimums up front.</span></li><li><span><b>Staged order tracking</b> — production, QC and shipment visibility.</span></li><li><span><b>Private label ready</b> — custom labels, packaging and prints.</span></li></ul>
+    </div>
+    <div class="reel" data-reveal="right">
+      <video id="reel" muted loop playsinline preload="metadata" poster="/media/poster.jpg"><source src="/media/showreel.mp4" type="video/mp4"></video>
+      <div class="tag"><i></i>Showreel · Our garment categories</div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="center"><span class="eyebrow">One platform, three roles</span><h2 class="h2 split" style="margin-top:14px">Join the way<br><em>you trade</em></h2></div>
+    <div class="cards3" style="margin-top:60px">
+      <div class="card" data-reveal><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6h15l-2 9H8L6 6zm0 0L5 3H2M9 20a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z"/></svg></div><h3>Buyers</h3><p>Brands, retailers and merch teams. Post RFQs, compare quotes, track orders and save favourites.</p><p style="margin-top:24px"><a class="btn btn-primary btn-sm" href="/register?role=buyer">Join as buyer</a></p></div>
+      <div class="card" data-reveal style="--d:.1s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l6 4V8l6 4V4h6v17H3z"/></svg></div><h3>Manufacturers</h3><p>Showcase your catalogue, respond to live RFQs and grow with qualified bulk demand.</p><p style="margin-top:24px"><a class="btn btn-primary btn-sm" href="/register?role=seller">Become a seller</a></p></div>
+      <div class="card" data-reveal style="--d:.2s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21a8 8 0 0116 0"/></svg></div><h3>Sourcing agents</h3><p>Refer buyers with your personal code and earn commission on every delivered order.</p><p style="margin-top:24px"><a class="btn btn-primary btn-sm" href="/register?role=agent">Become an agent</a></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section light" id="faq">
+  <div class="wrap" style="max-width:960px">
+    <div class="center"><span class="eyebrow">FAQ</span><h2 class="h2" style="margin-top:14px">Good <em>questions</em></h2></div>
+    <div class="faq" style="margin-top:50px">
+      <details><summary>What is the minimum order quantity?</summary><p>MOQ is set per style by each manufacturer — typically 200–600 pieces. You can see it on every product card.</p></details>
+      <details><summary>Does it cost anything to post an RFQ?</summary><p>No. Posting RFQs and comparing quotes is free for buyers. The platform charges the seller a small commission on confirmed orders.</p></details>
+      <details><summary>Can I get custom labels and my own designs?</summary><p>Yes. Mention private label, prints, embroidery or packaging in your RFQ notes and sellers will quote accordingly.</p></details>
+      <details><summary>How are sellers verified?</summary><p>New sellers register and wait for admin verification before they can quote. Products are reviewed before going live.</p></details>
+      <details><summary>Do you ship internationally?</summary><p>Quotes are FOB India by default; specify your destination port or city in the RFQ and sellers will include freight options.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="cta"><canvas id="cta-canvas"></canvas>
+  <div class="wrap"><span class="eyebrow">Ready when you are</span><h2 class="h1 split" style="margin-top:20px">Start sourcing<br><em>in minutes</em></h2>
+  <div class="hero-actions"><a href="/register?role=buyer" class="btn btn-primary">Create free account</a><a href="/contact" class="btn btn-ghost">Talk to us</a></div></div>
+</section>
+
+<footer id="foot"></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/hero3d.js"></script>
+<script src="/js/pages.js"></script>
+</body>
+</html>

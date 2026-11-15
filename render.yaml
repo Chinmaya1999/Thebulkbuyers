@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: the-bulk-buyers
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: SEED_DEMO, value: "false" }
+      - { key: DATABASE_URL, fromDatabase: { name: bulkbuyers-db, property: connectionString } }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: ADMIN_EMAIL, sync: false }
+      - { key: ADMIN_PASSWORD, sync: false }
+databases:
+  - name: bulkbuyers-db
+    plan: basic-256mb
