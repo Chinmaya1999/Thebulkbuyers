@@ -52,7 +52,11 @@ async function main() {
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
     const o = req.get('origin');
     if (!o) return next();
-    try { if (new URL(o).host === req.get('host') || allowed.has(o)) return next(); } catch { /* fall through */ }
+    try {
+      const u = new URL(o), fwd = (req.get('x-forwarded-host') || '').split(',')[0].trim();
+      const devLocal = !PROD && ['localhost', '127.0.0.1', '[::1]'].includes(u.hostname); // Vite dev server (:5173) proxies to this API
+      if (u.host === req.get('host') || (fwd && u.host === fwd) || devLocal || allowed.has(o)) return next();
+    } catch { /* fall through */ }
     res.status(403).json({ error: 'Cross-site request blocked' });
   });
   app.use('/api/auth/login', lim(15 * 60_000, Number(process.env.LOGIN_LIMIT || 25), { message: { error: 'Too many attempts, try again later.' } }));
