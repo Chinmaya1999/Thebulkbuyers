@@ -1,7 +1,7 @@
 // Authentication, authorization and full admin-option tests.
 // Needs a running API with demo data. To avoid rate-limit noise start it with:
 //   API_LIMIT=5000 LOGIN_LIMIT=500 REGISTER_LIMIT=500 node server/server.js     then     BASE=http://localhost:3000 node --test server/test/security.test.js
-const { test } = require('node:test');
+const { test, after } = require('node:test');
 const assert = require('node:assert/strict');
 const BASE = process.env.BASE || 'http://localhost:3000';
 const ADMIN_PW = process.env.ADMIN_PASSWORD || 'Admin@12345';
@@ -368,4 +368,13 @@ test('robustness: malformed input never crashes the API', async () => {
   assert.equal((await c('GET', '/does-not-exist')).status, 404);
   assert.equal((await fetch(BASE + '/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad json' })).status, 400);
   assert.equal((await fetch(BASE + '/healthz')).status, 200);
+});
+
+// Leave the dev database as we found it: remove every throw-away @test.com account and the records they created.
+after(async () => {
+  const a = await admin(), users = (await a('GET', '/admin/users')).data.filter(u => /@test\.com$/.test(u.email)), ids = new Set(users.map(u => u.id));
+  for (const o of (await a('GET', '/orders')).data) if (ids.has(o.buyer_id) || ids.has(o.seller_id)) await a('DELETE', `/admin/orders/${o.id}`);
+  for (const r of (await a('GET', '/rfqs')).data) if (ids.has(r.buyer_id)) await a('DELETE', `/admin/rfqs/${r.id}`);
+  for (const u of users) await a('DELETE', `/admin/users/${u.id}`);
+  for (const p of (await a('GET', '/admin/products')).data) if (/^(Lifecycle Tee|Cat Probe)/.test(p.name)) await a('DELETE', `/admin/products/${p.id}`);
 });

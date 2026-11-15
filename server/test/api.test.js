@@ -138,6 +138,7 @@ test('admin product master attributes: SKU, type validation, private purchase pr
   const mine = (await s('GET', `/admin/products/${ok.data.id}`)).data;
   assert.match(mine.sku, /^TBB-MEN-\d{5}$/); assert.equal(mine.purchase_price, 150); assert.equal(mine.hsn_code, '6110'); assert.equal(mine.retail_price, Math.round(300 * 2.2 / 10) * 10 - 1);
   assert.equal((await s('POST', '/admin/products', { ...base, subcategory: 'mens-hoodies', sku: mine.sku })).status, 400, 'duplicate SKU rejected');
+  await s('DELETE', `/admin/products/${ok.data.id}`); // keep the catalogue clean
 });
 
 test('retail stock: 0 = made-to-order; otherwise enforced and decremented', async () => {
