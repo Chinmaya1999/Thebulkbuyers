@@ -25,9 +25,12 @@ async function main() {
 
   const app = express();
   app.set('trust proxy', 1);
+  const HTTP_ONLY = process.env.COOKIE_SECURE === 'false'; // plain-HTTP deployment (no TLS yet): don't force https
   app.use(helmet({
+    hsts: !HTTP_ONLY,
     contentSecurityPolicy: {
       directives: {
+        ...(HTTP_ONLY ? { upgradeInsecureRequests: null } : {}),
         defaultSrc: ["'self'"], scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
