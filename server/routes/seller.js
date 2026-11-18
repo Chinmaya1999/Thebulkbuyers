@@ -97,7 +97,7 @@ router.post('/rfqs/:id/quote', async (req, res) => {
   if (ex && ex.status !== 'pending') return res.status(400).json({ error: 'Your quote is locked' });
   if (ex) await q.run('UPDATE quotes SET price=?,lead_days=?,notes=? WHERE id=?', price, lead, str(req.body?.notes, 1000), ex.id);
   else await q.run('INSERT INTO quotes(rfq_id,seller_id,price,lead_days,notes) VALUES(?,?,?,?,?)', rfq.id, req.user.id, price, lead, str(req.body?.notes, 1000));
-  await notify(rfq.buyer_id, `New quote on "${rfq.title}": ₹${price}/pc`, '#quotations');
+  await notify(rfq.buyer_id, `New quote on "${rfq.title}": $${price}/pc`, '#quotations');
   res.status(ex ? 200 : 201).json({ ok: true });
 });
 

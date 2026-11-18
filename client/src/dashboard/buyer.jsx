@@ -74,7 +74,7 @@ function NewQuoteModal({ onClose, onDone }) {
   return <Modal title="Request a quotation" onClose={onClose}><form className="form" onSubmit={submit}>
     <label>What do you need?<input name="title" required maxLength={160} placeholder="e.g. 1,000 oversized black hoodies with embroidered logo" /></label>
     <div className="row2"><label>Category<select name="category"><option value="">Select…</option>{tree.map(g => <optgroup key={g.id} label={g.name}>{g.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</optgroup>)}</select></label><label>Quantity (pcs)<input name="quantity" type="number" min="1" required /></label></div>
-    <div className="row2"><label>Target price / pc (₹)<input name="targetPrice" type="number" min="0" /></label><label>Needed by<input name="neededBy" type="date" /></label></div>
+    <div className="row2"><label>Target price / pc ($)<input name="targetPrice" type="number" min="0" /></label><label>Needed by<input name="neededBy" type="date" /></label></div>
     <label>Destination<input name="destination" placeholder="City, Country" maxLength={120} /></label><label>Specs &amp; notes<textarea name="notes" rows="3" maxLength={2000} placeholder="Fabric, GSM, colours, size split, labels, packaging, samples…" /></label>
     <div className="form-err" role="alert">{err}</div><button className="btn">Send request</button></form></Modal>;
 }

@@ -46,7 +46,7 @@ export default function Listing() {
       <div>
         <div className="toolbar"><div className="left">
           <button className="btn sm ghost mob-only" onClick={() => setDrawer(true)}><Ic.Filter /> Filters</button>
-          <span className="label" aria-live="polite">{loading ? 'Loading…' : `${meta.total.toLocaleString('en-IN')} product${meta.total === 1 ? '' : 's'}`}</span></div>
+          <span className="label" aria-live="polite">{loading ? 'Loading…' : `${meta.total.toLocaleString('en-US')} product${meta.total === 1 ? '' : 's'}`}</span></div>
           <div className="left"><label className="label desk-only" htmlFor="sort">Sort</label><select id="sort" value={sortVal} onChange={e => { const n = new URLSearchParams(params); e.target.value ? n.set('sort', e.target.value) : n.delete('sort'); set(n); }}>{SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
             <div className="viewtoggle desk-only" role="group" aria-label="View"><button className={view === 'grid' ? 'on' : ''} onClick={() => setView('grid')} aria-label="Grid view" aria-pressed={view === 'grid'}><Ic.Grid /></button><button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')} aria-label="List view" aria-pressed={view === 'list'}><Ic.List /></button></div></div></div>
         <ActiveChips params={params} set={set} nodes={nodes} facets={facets} />

@@ -7,7 +7,7 @@ const { priceCart, r2 } = require('../pricing');
 const { acceptQuote, quoteForAccept } = require('../workflow');
 
 const ORDER_FLOW = ['confirmed', 'in_production', 'quality_check', 'shipped', 'delivered'];
-const inr = n => Number(n).toLocaleString('en-IN');
+const inr = n => Number(n).toLocaleString('en-US');
 
 /* ---------- RFQs ---------- */
 router.get('/rfqs', requireRole('buyer', 'admin'), async (req, res) => {

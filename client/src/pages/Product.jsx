@@ -38,10 +38,10 @@ export default function Product() {
   useEffect(() => { // SEO: title, description, structured data; recently viewed
     if (!p) return;
     document.title = `${p.name} (${p.sku}) — Wholesale | Bulk Buyers`;
-    const md = document.querySelector('meta[name=description]'); const prev = md?.content; if (md) md.content = `${p.name} — wholesale ₹${p.price_min}–₹${p.price_max} per piece, MOQ ${p.moq}. ${p.fabric}. ${p.sub_name || p.category_name}.`.slice(0, 300);
+    const md = document.querySelector('meta[name=description]'); const prev = md?.content; if (md) md.content = `${p.name} — wholesale $${p.price_min}–$${p.price_max} per piece, MOQ ${p.moq}. ${p.fabric}. ${p.sub_name || p.category_name}.`.slice(0, 300);
     const ld = document.createElement('script'); ld.type = 'application/ld+json';
     ld.text = JSON.stringify({ '@context': 'https://schema.org', '@type': 'Product', name: p.name, sku: p.sku, image: [p.image, ...(p.gallery || [])].filter(Boolean), description: p.description, brand: p.brand ? { '@type': 'Brand', name: p.brand } : undefined, category: [p.category_name, p.sub_name].filter(Boolean).join(' > '),
-      offers: { '@type': 'AggregateOffer', priceCurrency: 'INR', lowPrice: p.price_min, highPrice: p.price_max, offerCount: p.price_tiers?.length || 1, availability: p.stock_qty > 0 || p.stock_qty === 0 ? 'https://schema.org/InStock' : undefined } });
+      offers: { '@type': 'AggregateOffer', priceCurrency: 'USD', lowPrice: p.price_min, highPrice: p.price_max, offerCount: p.price_tiers?.length || 1, availability: p.stock_qty > 0 || p.stock_qty === 0 ? 'https://schema.org/InStock' : undefined } });
     document.head.appendChild(ld);
     try { const r = JSON.parse(localStorage.getItem('bb_recent') || '[]').filter(x => x.slug !== p.slug); r.unshift({ slug: p.slug, name: p.name, image: p.image, price: p.price_min, sku: p.sku }); localStorage.setItem('bb_recent', JSON.stringify(r.slice(0, 12))); } catch { /* storage unavailable */ }
     return () => { ld.remove(); if (md && prev != null) md.content = prev; };
@@ -74,7 +74,7 @@ export default function Product() {
         <tr><td>Category</td><td>{[p.group_name, p.category_name, p.sub_name].filter(Boolean).join(' › ')}</td></tr><tr><td>SKU</td><td>{p.sku}</td></tr>{p.brand && <tr><td>Brand</td><td>{p.brand}</td></tr>}<tr><td>Manufacturer</td><td>{p.seller_company}</td></tr>
         {(p.gender || p.age_group) && <tr><td>For</td><td>{[p.gender, p.age_group].filter(Boolean).join(' · ')}</td></tr>}<tr><td>Fit</td><td>{p.fit || '—'}</td></tr><tr><td>Sizes</td><td>{p.size_options.join(', ')}</td></tr><tr><td>Colours</td><td>{p.colors.length}</td></tr>
         <tr><td>MOQ</td><td>{p.moq} pcs</td></tr><tr><td>Lead time</td><td>{p.lead_days} days (made to order)</td></tr>{p.hsn_code && <tr><td>HSN code</td><td>{p.hsn_code}</td></tr>}<tr><td>GST</td><td>{p.gst_rate}%</td></tr>{p.barcode && <tr><td>Barcode</td><td>{p.barcode}</td></tr>}
-        <tr><td>Availability</td><td>{p.stock_qty > 0 ? `${p.stock_qty.toLocaleString('en-IN')} pcs ready stock` : 'Made to order'}</td></tr></tbody></table></div></details>
+        <tr><td>Availability</td><td>{p.stock_qty > 0 ? `${p.stock_qty.toLocaleString('en-US')} pcs ready stock` : 'Made to order'}</td></tr></tbody></table></div></details>
       {apparel && <details><summary>Size guide</summary><div className="bd"><p className="mute">Indicative garment measurements in cm. Exact grading is confirmed in the manufacturer’s tech pack — ask for it with your quotation.</p>
         <table className="sg"><thead><tr><th>Size</th><th>Chest</th><th>Length</th></tr></thead><tbody>{SIZE_GUIDE.map(r => <tr key={r[0]}>{r.map(c => <td key={c}>{c}</td>)}</tr>)}</tbody></table></div></details>}
       <details><summary>Shipping information</summary><div className="bd">{pol.data?.shipping || 'Loading…'}</div></details>

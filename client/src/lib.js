@@ -5,12 +5,12 @@ export const BRAND = {
   email: 'hello@thebulkbuyers.com',
   address: 'Your Office Address, City, State, India'
 };
-export const money = n => '₹' + Math.round(Number(n) || 0).toLocaleString('en-IN');
-export const money2 = n => '₹' + (Number(n) || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-export const compact = n => { n = Number(n) || 0; return n >= 1e7 ? '₹' + (n / 1e7).toFixed(2) + ' Cr' : n >= 1e5 ? '₹' + (n / 1e5).toFixed(2) + ' L' : n >= 1e3 ? '₹' + (n / 1e3).toFixed(1) + 'K' : '₹' + Math.round(n); };
-export const num = n => Number(n || 0).toLocaleString('en-IN');
-export const dt = s => s ? new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-export const mon = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-IN', { month: 'short' });
+export const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
+export const money2 = n => '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+export const compact = n => { n = Number(n) || 0; return n >= 1e9 ? '$' + (n / 1e9).toFixed(2) + 'B' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + Math.round(n); };
+export const num = n => Number(n || 0).toLocaleString('en-US');
+export const dt = s => s ? new Date(s).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+export const mon = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short' });
 
 // Unsplash photos are requested at the size we need (up to 4K) in modern formats.
 export const img = (url, w = 800) => !url ? '' : url.includes('images.unsplash.com') ? `${url}?w=${w}&q=80&auto=format&fit=crop` : url;
@@ -73,8 +73,8 @@ export function openSpecSheet(p) {
   w.document.write(`<!doctype html><title>${esc(p.name)} — spec sheet</title><style>body{font:14px/1.5 Inter,Arial,sans-serif;color:#171717;max-width:760px;margin:40px auto;padding:0 24px}h1{font:600 34px Georgia,serif;margin:0 0 4px}.sub{color:#777;margin-bottom:22px}table{border-collapse:collapse;width:100%;margin:12px 0 26px}td,th{padding:9px 10px;border-bottom:1px solid #e5e0d6;text-align:left;vertical-align:top}th{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#777;width:34%}img{width:240px;float:right;margin:0 0 20px 24px;border:1px solid #e5e0d6}small{color:#777}</style>
   <img src="${esc(img(p.image, 700))}" alt=""><h1>${esc(p.name)}</h1><div class="sub">Bulk Buyers — product specification</div><p>${esc(p.description)}</p>
   <table>${rows.filter(r => r[1]).map(r => `<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join('')}</table>
-  <h3>Wholesale price tiers (excl. GST)</h3><table>${(p.price_tiers || []).map(t => `<tr><th>${t.min_qty}+ pcs</th><td>₹${t.price} / pc</td></tr>`).join('')}<tr><th>Below MOQ (retail)</th><td>₹${p.retail_price} / pc</td></tr></table>
-  <small>Prices indicative; final price and availability are confirmed at order acceptance. Generated ${new Date().toLocaleDateString('en-IN')}.</small><script>onload=()=>setTimeout(print,300)<\/script>`);
+  <h3>Wholesale price tiers (excl. GST)</h3><table>${(p.price_tiers || []).map(t => `<tr><th>${t.min_qty}+ pcs</th><td>$${t.price} / pc</td></tr>`).join('')}<tr><th>Below MOQ (retail)</th><td>$${p.retail_price} / pc</td></tr></table>
+  <small>Prices indicative; final price and availability are confirmed at order acceptance. Generated ${new Date().toLocaleDateString('en-US')}.</small><script>onload=()=>setTimeout(print,300)<\/script>`);
   w.document.close(); return true;
 }
 
@@ -82,11 +82,11 @@ export const invoiceNo = o => `INV-${new Date(o.created_at).getFullYear()}-${Str
 // Printable order invoice (opens a new tab → Print / Save as PDF). A system-generated summary, not a statutory tax invoice.
 export function openInvoice(o, user) {
   const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const f = n => '₹' + (Number(n) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const f = n => '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const b = o.shipping?.business || {}, bill = o.shipping?.billing || o.shipping || {}, rate = o.product_gst_rate ?? (o.total ? Math.round((o.gst_amount / o.total) * 1000) / 10 : 0);
   const w = window.open('', '_blank'); if (!w) return false;
   w.document.write(`<!doctype html><title>${invoiceNo(o)}</title><style>body{font:13.5px/1.55 Inter,Arial,sans-serif;color:#171717;max-width:820px;margin:36px auto;padding:0 26px}h1{font:600 34px Georgia,serif;margin:0}.row{display:flex;justify-content:space-between;gap:30px;margin:22px 0}.l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#777}table{border-collapse:collapse;width:100%;margin:14px 0}th,td{padding:9px 10px;border-bottom:1px solid #e5e0d6;text-align:left}th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777}td.r,th.r{text-align:right}.tot td{border:0;padding:4px 10px}.grand td{font:600 18px Georgia,serif;border-top:1px solid #171717;padding-top:10px}small{color:#777}</style>
-  <div class="row"><div><h1>Invoice</h1><div class="l">${invoiceNo(o)}</div></div><div style="text-align:right"><div class="l">Date</div>${new Date(o.created_at).toLocaleDateString('en-IN')}<div class="l" style="margin-top:8px">Order</div>#${o.id} · ${esc(o.channel)}</div></div>
+  <div class="row"><div><h1>Invoice</h1><div class="l">${invoiceNo(o)}</div></div><div style="text-align:right"><div class="l">Date</div>${new Date(o.created_at).toLocaleDateString('en-US')}<div class="l" style="margin-top:8px">Order</div>#${o.id} · ${esc(o.channel)}</div></div>
   <div class="row"><div><div class="l">Sold by</div><b>${esc(o.seller_company || o.seller_name)}</b><br>${o.seller_gst ? 'GSTIN ' + esc(o.seller_gst) : '<small>GSTIN not provided</small>'}</div>
   <div><div class="l">Billed to</div><b>${esc(b.company || user?.company || o.buyer_company || o.buyer_name)}</b><br>${b.gstin || o.buyer_gst ? 'GSTIN ' + esc(b.gstin || o.buyer_gst) + '<br>' : ''}${esc([bill.name, bill.line1 || bill.address, bill.city, bill.state, bill.pincode, bill.country].filter(Boolean).join(', '))}</div></div>
   <table><thead><tr><th>Item</th><th>HSN</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Taxable</th><th class="r">GST</th></tr></thead><tbody>

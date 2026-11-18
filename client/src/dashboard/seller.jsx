@@ -73,7 +73,7 @@ function QuoteModal({ x, onClose, onSaved }) {
   return <Modal title={x.title} onClose={onClose}>
     <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginBottom: 10 }}><span><b>{num(x.quantity)}</b> pcs</span>{x.target_price > 0 && <span>Target <b>{money(x.target_price)}</b>/pc</span>}{x.destination && <span>To <b>{x.destination}</b></span>}{x.needed_by && <span>Needed by <b>{x.needed_by}</b></span>}</div>
     {x.notes && <p className="muted">“{x.notes}”</p>}
-    <form className="form" onSubmit={submit}><div className="row2"><label>Your price (₹/pc)<input name="price" type="number" min="1" step="any" required defaultValue={x.quote_price || ''} /></label><label>Lead time (days)<input name="lead_days" type="number" min="1" max="365" required defaultValue={x.quote_lead || 30} /></label></div>
+    <form className="form" onSubmit={submit}><div className="row2"><label>Your price ($/pc)<input name="price" type="number" min="1" step="any" required defaultValue={x.quote_price || ''} /></label><label>Lead time (days)<input name="lead_days" type="number" min="1" max="365" required defaultValue={x.quote_lead || 30} /></label></div>
       <label>Notes<textarea name="notes" rows="3" maxLength={1000} defaultValue={x.quote_notes || ''} /></label><div className="form-err" role="alert">{err}</div>
       <button className="btn btn-primary" type="submit">{x.quote_id ? 'Update quote' : 'Send quote'}</button></form></Modal>;
 }

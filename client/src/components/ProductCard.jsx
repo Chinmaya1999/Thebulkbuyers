@@ -35,7 +35,7 @@ export default function ProductCard({ p, view = 'grid' }) {
       <Link to={'/product?p=' + p.slug} className="pc-name">{p.name}</Link>
       <span className="pc-sku">SKU {p.sku}</span>
       <div className="pc-price"><b className="num">{money2(p.price_min)}{p.price_max !== p.price_min && `–${money2(p.price_max)}`}</b><span className="per">/ pc wholesale</span><s>MRP {money(p.mrp)}</s></div>
-      <div className="pc-meta"><span>MOQ <b>{p.moq}</b></span><i className="dot" /><span className={'stock ' + (mto ? 'mto' : 'in')}>{mto ? 'Made to order' : `In stock · ${p.stock_qty.toLocaleString('en-IN')}`}</span></div>
+      <div className="pc-meta"><span>MOQ <b>{p.moq}</b></span><i className="dot" /><span className={'stock ' + (mto ? 'mto' : 'in')}>{mto ? 'Made to order' : `In stock · ${p.stock_qty.toLocaleString('en-US')}`}</span></div>
       <div className="pc-meta" style={{ marginTop: 6 }}><span className="sw-dots">{(p.colors || []).slice(0, 6).map(c => <i key={c} style={{ background: c }} />)}{p.colors?.length > 6 && <small>+{p.colors.length - 6}</small>}</span></div>
       {sizes.length > 0 && <div className="sizes-mini">{sizes.slice(0, 6).map(s => <span key={s}>{s}</span>)}{sizes.length > 6 && <span>+{sizes.length - 6}</span>}</div>}
     </div></m.article>

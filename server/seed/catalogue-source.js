@@ -19,7 +19,7 @@ window.TBB = {
     { id:'active',  name:'Activewear',           icon:'shorts', c:'#c6ff3d', blurb:'Dry-fit tees, track sets, gym shorts' }
   ],
   products: [
-    // slug, name, cat, icon, fabric, gsm, fit, moq, [minPrice,maxPrice] INR/pc, lead days, colors
+    // slug, name, cat, icon, fabric, gsm, fit, moq, [minPrice,maxPrice] USD/pc, lead days, colors
     p('classic-crew-neck-tee','Classic Crew Neck T-Shirt','tees','tee','100% Combed Cotton Single Jersey',180,'Regular',500,[110,165],25,['#f4f1ea','#111','#1f3a5f','#b3262d','#2f6b4f'],'Bio-washed, pre-shrunk, ring-spun yarn. The everyday bulk best-seller for retail & merch.'),
     p('oversized-drop-shoulder-tee','Oversized Drop-Shoulder Tee','tees','tee','100% Cotton Terry Jersey',240,'Oversized',300,[190,280],28,['#e9dcc5','#222','#7a8f6d','#c9c2d8'],'Heavyweight boxy streetwear tee with puff & screen-print ready fabric.'),
     p('pique-polo-shirt','Pique Polo Shirt','tees','polo','Cotton Pique',220,'Regular',500,[170,260],28,['#fff','#0b1f3a','#111','#8b1e2d','#1b5e46'],'Corporate & golf polo with ribbed collar, 2-button placket and embroidery-ready chest.'),

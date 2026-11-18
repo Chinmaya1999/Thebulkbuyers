@@ -45,14 +45,14 @@ export default function BulkMatrix({ p, compact, initialQty = 0, onTotals, apiRe
         <td className="tot num">{rowTotal(c) || '—'}</td></tr>)}</tbody>
       <tfoot><tr><td>Total</td>{sizes.map(s => <td key={s} className="num">{colTotal(s) || '—'}</td>)}<td className="num">{total || '—'}</td></tr></tfoot></table></div>
 
-    <div className="tierbar" aria-label="Bulk price tiers">{[{ min_qty: 1, price: p.retail_price, retail: true }, ...tiers].map((t, i, a) => { const on = t.retail ? !wholesale : tier === t || tier?.min_qty === t.min_qty; return <m.div key={i} className={on ? 'on' : ''} layout><small>{t.retail ? `1–${p.moq - 1} pcs` : `${t.min_qty}${i === a.length - 1 ? '+' : '–' + (a[i + 1].min_qty - 1)} pcs`}</small><b className="num">₹{t.price}</b></m.div>; })}</div>
+    <div className="tierbar" aria-label="Bulk price tiers">{[{ min_qty: 1, price: p.retail_price, retail: true }, ...tiers].map((t, i, a) => { const on = t.retail ? !wholesale : tier === t || tier?.min_qty === t.min_qty; return <m.div key={i} className={on ? 'on' : ''} layout><small>{t.retail ? `1–${p.moq - 1} pcs` : `${t.min_qty}${i === a.length - 1 ? '+' : '–' + (a[i + 1].min_qty - 1)} pcs`}</small><b className="num">${t.price}</b></m.div>; })}</div>
 
     {total > 0 && !wholesale && <div className="notice warn">Add <b>{p.moq - total}</b> more pcs to unlock wholesale pricing — {money2(tiers[0]?.price)} vs {money2(p.retail_price)} retail per piece (MOQ {p.moq}).</div>}
     {wholesale && <div className="notice ok"><Ic.Check width="14" style={{ display: 'inline', verticalAlign: '-2px', marginRight: 6 }} />Wholesale pricing applied — {tier.min_qty}+ pcs tier.</div>}
-    {p.stock_qty > 0 ? <p className={'stock ' + (overStock ? '' : 'in')} style={overStock ? { color: 'var(--err)' } : undefined}>{overStock ? `Only ${p.stock_qty} pcs in stock` : `In stock · ${p.stock_qty.toLocaleString('en-IN')} pcs ready`}{p.stock_qty < p.moq && ' (below MOQ — retail quantities only)'}</p> : <p className="stock mto">Made to order · lead time {p.lead_days} days</p>}
+    {p.stock_qty > 0 ? <p className={'stock ' + (overStock ? '' : 'in')} style={overStock ? { color: 'var(--err)' } : undefined}>{overStock ? `Only ${p.stock_qty} pcs in stock` : `In stock · ${p.stock_qty.toLocaleString('en-US')} pcs ready`}{p.stock_qty < p.moq && ' (below MOQ — retail quantities only)'}</p> : <p className="stock mto">Made to order · lead time {p.lead_days} days</p>}
 
     <div className="pbox" style={{ background: 'var(--bg)' }}><div className="sumbox">
-      <div><span>Total quantity</span><b className="num">{total.toLocaleString('en-IN')} pcs</b></div><div><span>Total items (variants)</span><span className="num">{items}</span></div>
+      <div><span>Total quantity</span><b className="num">{total.toLocaleString('en-US')} pcs</b></div><div><span>Total items (variants)</span><span className="num">{items}</span></div>
       <div><span>Price per unit {wholesale ? '(tier)' : '(retail)'}</span><span className="num">{money2(unit)}</span></div>
       <div><span>Subtotal</span><span className="num">{money2(taxable)}</span></div>
       {bulk > 0 && <div className="save"><span>Bulk discount</span><span className="num">− {money2(bulk)}</span></div>}

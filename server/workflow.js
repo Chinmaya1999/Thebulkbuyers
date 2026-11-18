@@ -2,7 +2,7 @@
 const { q, getSetting } = require('./db');
 const { notify, notifyAdmins } = require('./auth');
 const { num } = require('./util');
-const inr = n => Number(n).toLocaleString('en-IN');
+const inr = n => Number(n).toLocaleString('en-US');
 
 // Accepts a quote: rejects the other quotes, closes the RFQ, creates the order. Returns the new order id.
 async function acceptQuote(qt) {
@@ -18,8 +18,8 @@ async function acceptQuote(qt) {
     return t.insert('INSERT INTO orders(rfq_id,quote_id,buyer_id,seller_id,product_id,title,quantity,unit_price,total,commission,destination) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
       qt.rfq_id, qt.id, qt.buyer_id, qt.seller_id, qt.rfq_product_id, qt.title, qt.quantity, qt.price, total, Math.round(total * pct), qt.destination);
   });
-  await notify(qt.buyer_id, `Your quotation "${qt.title}" is confirmed — order #${orderId} (₹${inr(total)})`, '#orders');
-  await notifyAdmins(`Order #${orderId} confirmed — ₹${inr(total)}`, '#orders');
+  await notify(qt.buyer_id, `Your quotation "${qt.title}" is confirmed — order #${orderId} ($${inr(total)})`, '#orders');
+  await notifyAdmins(`Order #${orderId} confirmed — $${inr(total)}`, '#orders');
   return orderId;
 }
 
