@@ -5,9 +5,12 @@ export const BRAND = {
   email: 'hello@thebulkbuyers.com',
   address: 'Your Office Address, City, State, India'
 };
-export const money = n => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
-export const money2 = n => '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-export const compact = n => { n = Number(n) || 0; return n >= 1e9 ? '$' + (n / 1e9).toFixed(2) + 'B' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + Math.round(n); };
+// Stored prices are in INR; they are converted to USD for display only (calculations stay in INR).
+export const INR_PER_USD = 88;
+export const usd = n => (Number(n) || 0) / INR_PER_USD;
+export const money = n => '$' + usd(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+export const money2 = money;
+export const compact = n => { n = usd(n); return n >= 1e9 ? '$' + (n / 1e9).toFixed(2) + 'B' : n >= 1e6 ? '$' + (n / 1e6).toFixed(2) + 'M' : n >= 1e3 ? '$' + (n / 1e3).toFixed(1) + 'K' : '$' + Math.round(n); };
 export const num = n => Number(n || 0).toLocaleString('en-US');
 export const dt = s => s ? new Date(s).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
 export const mon = m => new Date(m + '-01T00:00:00').toLocaleDateString('en-US', { month: 'short' });
@@ -82,7 +85,7 @@ export const invoiceNo = o => `INV-${new Date(o.created_at).getFullYear()}-${Str
 // Printable order invoice (opens a new tab → Print / Save as PDF). A system-generated summary, not a statutory tax invoice.
 export function openInvoice(o, user) {
   const esc = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const f = n => '$' + (Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const f = n => '$' + usd(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const b = o.shipping?.business || {}, bill = o.shipping?.billing || o.shipping || {}, rate = o.product_gst_rate ?? (o.total ? Math.round((o.gst_amount / o.total) * 1000) / 10 : 0);
   const w = window.open('', '_blank'); if (!w) return false;
   w.document.write(`<!doctype html><title>${invoiceNo(o)}</title><style>body{font:13.5px/1.55 Inter,Arial,sans-serif;color:#171717;max-width:820px;margin:36px auto;padding:0 26px}h1{font:600 34px Georgia,serif;margin:0}.row{display:flex;justify-content:space-between;gap:30px;margin:22px 0}.l{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#777}table{border-collapse:collapse;width:100%;margin:14px 0}th,td{padding:9px 10px;border-bottom:1px solid #e5e0d6;text-align:left}th{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#777}td.r,th.r{text-align:right}.tot td{border:0;padding:4px 10px}.grand td{font:600 18px Georgia,serif;border-top:1px solid #171717;padding-top:10px}small{color:#777}</style>

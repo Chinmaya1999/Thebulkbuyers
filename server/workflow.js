@@ -2,7 +2,7 @@
 const { q, getSetting } = require('./db');
 const { notify, notifyAdmins } = require('./auth');
 const { num } = require('./util');
-const inr = n => Number(n).toLocaleString('en-US');
+const inr = n => (Number(n) / 88).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); // INR → USD for display
 
 // Accepts a quote: rejects the other quotes, closes the RFQ, creates the order. Returns the new order id.
 async function acceptQuote(qt) {
