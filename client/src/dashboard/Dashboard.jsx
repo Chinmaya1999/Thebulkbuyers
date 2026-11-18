@@ -6,6 +6,7 @@ import { dt } from '../lib.js';
 import * as A from './admin.jsx';
 import * as B from './buyer.jsx';
 import * as G from './agent.jsx';
+import * as S from './seller.jsx';
 import Profile from './Profile.jsx';
 import { m, AnimatePresence } from '../components/motion.jsx';
 
@@ -13,9 +14,10 @@ import { m, AnimatePresence } from '../components/motion.jsx';
 const ROLES = {
   admin: [['overview', 'Overview', A.AdminOverview], ['orders', 'Orders', A.AdminOrders], ['rfqs', 'Quotation requests', A.AdminRfqs], ['products', 'Products', A.AdminProducts], ['categories', 'Categories', A.AdminCategories], ['users', 'Users & suppliers', A.AdminUsers], ['payments', 'Payments', A.AdminPayments], ['inquiries', 'Inquiries', A.AdminInquiries], ['site', 'Website content', A.AdminSite], ['settings', 'Settings', A.AdminSettings]],
   buyer: [['overview', 'Overview', B.BuyerOverview], ['orders', 'My orders', B.BuyerOrders], ['tracking', 'Order tracking', B.BuyerTracking], ['quotations', 'My quotations', B.BuyerQuotations], ['invoices', 'Invoices', B.BuyerInvoices], ['wishlist', 'Wishlist', B.BuyerWishlist], ['saved', 'Saved products', B.BuyerSaved], ['reorder', 'Reorder', B.BuyerReorder], ['addresses', 'Addresses', B.BuyerAddresses], ['profile', 'Business profile', B.BuyerProfile], ['gst', 'GST details', B.BuyerGst], ['settings', 'Account settings', B.BuyerSettings]],
+  seller: [['overview', 'Overview', S.SellerOverview], ['products', 'My products', S.SellerProducts], ['orders', 'Orders', S.SellerOrders], ['rfqs', 'Quotation requests', S.SellerRfqs], ['payouts', 'Payouts', S.SellerPayouts], ['profile', 'Business profile', Profile]],
   agent: [['overview', 'Overview', G.AgentOverview], ['buyers', 'My buyers', G.AgentBuyers], ['commissions', 'Commissions', G.AgentCommissions], ['profile', 'My profile', Profile]],
 };
-const LABEL = { admin: 'Administrator', buyer: 'Business buyer', agent: 'Sales agent' };
+const LABEL = { admin: 'Administrator', buyer: 'Business buyer', agent: 'Sales agent', seller: 'Manufacturer / supplier' };
 const ALIAS = { rfqs: 'quotations', newrfq: 'quotations' };
 
 function Bell() {

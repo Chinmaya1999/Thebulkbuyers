@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const { q, getSetting } = require('../db');
-const multer = require('multer');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { requireRole, notify } = require('../auth');
@@ -91,16 +90,7 @@ router.delete('/users/:id', async (req, res) => {
 });
 
 /* ---------- Catalogue: full product management ---------- */
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
-const sniff = b => b.length > 12 && (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? 'image/jpeg' : b.slice(0, 4).toString('hex') === '89504e47' ? 'image/png' : b.slice(0, 4).toString() === 'RIFF' && b.slice(8, 12).toString() === 'WEBP' ? 'image/webp' : null);
-router.post('/upload', (req, res, next) => upload.single('image')(req, res, async err => {
-  if (err) return res.status(400).json({ error: err.code === 'LIMIT_FILE_SIZE' ? 'Image too large (max 5MB)' : err.message });
-  const mime = req.file && sniff(req.file.buffer);
-  if (!mime) return res.status(400).json({ error: 'Only JPG, PNG or WebP images' });
-  const id = crypto.randomBytes(12).toString('hex');
-  try { await q.run('INSERT INTO images(id,mime,data) VALUES(?,?,?)', id, mime, req.file.buffer); } catch (e) { return next(e); }
-  res.json({ url: '/uploads/' + id });
-}));
+router.post('/upload', require('../upload'));
 
 router.get('/products', async (req, res) => {
   res.json(await q.all(`SELECT p.id,p.slug,p.name,p.sku,p.brand,p.category,p.moq,p.price_min,p.price_max,p.stock_qty,p.status,p.featured,p.views,p.image,p.seller_id,u.company seller_company,u.name seller_name

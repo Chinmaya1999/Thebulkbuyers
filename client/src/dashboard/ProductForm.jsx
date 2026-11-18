@@ -5,28 +5,30 @@ import { img, GENDERS, AGES, SEASONS } from '../lib.js';
 import { Modal } from './ui.jsx';
 
 // Full product editor for the admin: every catalogue attribute, photos, supplier, status and featured flag.
-export default function ProductForm({ id, onClose, onSaved }) {
-  const existing = useAsync(() => (id ? api('/admin/products/' + id) : Promise.resolve({})), [id]);
-  const users = useAsync(() => api('/admin/users'));
+// `seller` mode: a supplier managing their own catalogue (own endpoints; no supplier/status/featured controls — new listings await admin approval).
+export default function ProductForm({ id, onClose, onSaved, seller = false }) {
+  const base = seller ? '/seller' : '/admin';
+  const existing = useAsync(() => (id ? api(base + '/products/' + id) : Promise.resolve({})), [id]);
+  const users = useAsync(() => seller ? Promise.resolve([]) : api('/admin/users'));
   if (!existing.data || !users.data) return <Modal title={id ? 'Edit product' : 'Add product'} onClose={onClose}><p className="muted">Loading…</p></Modal>;
-  return <Form id={id} p={existing.data} suppliers={users.data.filter(u => u.role === 'seller' || u.role === 'admin')} onClose={onClose} onSaved={onSaved} />;
+  return <Form id={id} base={base} seller={seller} p={existing.data} suppliers={users.data.filter(u => u.role === 'seller' || u.role === 'admin')} onClose={onClose} onSaved={onSaved} />;
 }
 
-function Form({ id, p, suppliers, onClose, onSaved }) {
+function Form({ id, base, seller, p, suppliers, onClose, onSaved }) {
   const { tree, data: nodes } = useCategories();
   const [err, setErr] = useState(''), [image, setImage] = useState(p.image || ''), [gallery, setGallery] = useState(p.gallery || []), [cat, setCat] = useState(p.category || ''), [busy, setBusy] = useState(false);
   const types = (nodes || []).filter(n => n.parent_id === cat);
-  const push = async file => { const fd = new FormData(); fd.append('image', file); return (await api('/admin/upload', { method: 'POST', body: fd })).url; };
+  const push = async file => { const fd = new FormData(); fd.append('image', file); return (await api(base + '/upload', { method: 'POST', body: fd })).url; };
   const submit = async e => {
     e.preventDefault(); setBusy(true); setErr('');
-    const body = { ...Object.fromEntries(new FormData(e.target)), image, gallery, featured: e.target.featured.checked };
-    try { await api(id ? '/admin/products/' + id : '/admin/products', { method: id ? 'PUT' : 'POST', body }); onSaved(); } catch (er) { setErr(er.message); setBusy(false); }
+    const body = { ...Object.fromEntries(new FormData(e.target)), image, gallery, ...(seller ? {} : { featured: e.target.featured.checked }) };
+    try { await api(id ? base + '/products/' + id : base + '/products', { method: id ? 'PUT' : 'POST', body }); onSaved(); } catch (er) { setErr(er.message); setBusy(false); }
   };
   const opts = arr => arr.map(x => <option key={x} value={x}>{x}</option>);
   return <Modal title={id ? 'Edit product' : 'Add product'} onClose={onClose}><form className="form" onSubmit={submit}>
     <label>Product name<input name="name" required maxLength={120} defaultValue={p.name || ''} /></label>
-    <div className="row2"><label>Supplier / manufacturer<select name="seller_id" defaultValue={p.seller_id || ''}><option value="">Our own stock (admin)</option>{suppliers.filter(s => s.role === 'seller').map(s => <option key={s.id} value={s.id}>{s.company || s.name}</option>)}</select></label>
-      <label>Listing status<select name="status" defaultValue={p.status || 'approved'}><option value="approved">Live</option><option value="pending">Draft / pending</option><option value="rejected">Hidden</option></select></label></div>
+    {!seller && <div className="row2"><label>Supplier / manufacturer<select name="seller_id" defaultValue={p.seller_id || ''}><option value="">Our own stock (admin)</option>{suppliers.filter(s => s.role === 'seller').map(s => <option key={s.id} value={s.id}>{s.company || s.name}</option>)}</select></label>
+      <label>Listing status<select name="status" defaultValue={p.status || 'approved'}><option value="approved">Live</option><option value="pending">Draft / pending</option><option value="rejected">Hidden</option></select></label></div>}
     <div className="row2"><label>Category<select name="category" required value={cat} onChange={e => setCat(e.target.value)}><option value="">Select…</option>{tree.map(g => <optgroup key={g.id} label={g.name}>{g.categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</optgroup>)}</select></label>
       <label>Product type<select name="subcategory" key={cat} defaultValue={p.category === cat ? p.subcategory || '' : ''}><option value="">— any —</option>{types.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></label></div>
     <div className="row2"><label>Brand<input name="brand" maxLength={60} defaultValue={p.brand || ''} placeholder="Private label if blank" /></label><label>Gender<select name="gender" defaultValue={p.gender || ''}><option value="">—</option>{opts(GENDERS)}</select></label></div>
@@ -45,6 +47,6 @@ function Form({ id, p, suppliers, onClose, onSaved }) {
       <input type="file" accept="image/jpeg,image/png,image/webp" onChange={async e => { const f = e.target.files[0]; if (!f) return; try { setImage(await push(f)); setErr(''); } catch (er) { setErr(er.message); } e.target.value = ''; }} /></div></label>
     <label>Additional photos (up to 4)<div className="upl">{gallery.map(u => <span key={u} style={{ position: 'relative' }}><img src={img(u, 160)} alt="" /><button type="button" className="rm" style={{ position: 'absolute', top: 2, right: 2, background: '#fff', padding: '1px 6px' }} onClick={() => setGallery(g => g.filter(x => x !== u))}>×</button></span>)}
       {gallery.length < 4 && <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={async e => { for (const f of [...e.target.files].slice(0, 4 - gallery.length)) { try { const u = await push(f); setGallery(g => [...g, u].slice(0, 4)); } catch (er) { setErr(er.message); } } e.target.value = ''; }} />}</div></label>
-    <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}><input type="checkbox" name="featured" defaultChecked={!!p.featured} style={{ width: 'auto' }} /> Feature on the storefront</label>
+    {!seller && <label style={{ display: 'flex', gap: 10, alignItems: 'center' }}><input type="checkbox" name="featured" defaultChecked={!!p.featured} style={{ width: 'auto' }} /> Feature on the storefront</label>}
     <div className="form-err" role="alert">{err}</div><button className="btn btn-primary" type="submit" disabled={busy}>{id ? 'Save changes' : 'Add product'}</button></form></Modal>;
 }

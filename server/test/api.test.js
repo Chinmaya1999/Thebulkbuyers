@@ -37,7 +37,7 @@ test('auth rules', async () => {
   assert.equal(reg.status, 201); assert.equal((await eve('GET', '/auth/me')).data.user.role, 'buyer', 'self-registration can only create buyers');
   const b = await buyer();
   assert.equal((await b('GET', '/admin/products')).status, 403);
-  assert.equal((await c('POST', '/auth/login', { email: 'seller@demo.com', password: 'Demo@12345' })).status, 403, 'supplier accounts are admin-managed (no sign-in)');
+  assert.equal((await c('POST', '/auth/login', { email: 'seller@demo.com', password: 'Demo@12345' })).status, 200, 'sellers can sign in');
   assert.equal((await b('GET', '/admin/stats')).status, 403);
 });
 

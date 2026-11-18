@@ -16,7 +16,7 @@ async function load(req) {
     const u = await q.get('SELECT id,name,email,phone,company,country,gst,gst_legal_name,role,status,referral_code,created_at,token_version,discount_pct FROM users WHERE id=?', id);
     if (u && (tv || 0) !== u.token_version) return null; // session revoked
     // Suppliers are records managed by admin — they do not sign in. Admins, buyers and agents do.
-    if (!u || u.status === 'suspended' || !['admin', 'buyer', 'agent'].includes(u.role)) return null;
+    if (!u || u.status === 'suspended' || !['admin', 'buyer', 'agent', 'seller'].includes(u.role)) return null;
     delete u.token_version;
     return u;
   } catch { return null; }

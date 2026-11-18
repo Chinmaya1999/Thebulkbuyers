@@ -61,9 +61,9 @@ test('authz: sign-in required endpoints, buyer-only endpoints, removed seller/ag
     assert.equal((await a(m, p, {})).status, 403, `admin cannot act as buyer: ${m} ${p}`);
   }
   assert.equal((await anon('GET', '/auth/me')).data.user, null);
-  for (const p of ['/seller/summary', '/seller/products']) assert.equal((await b('GET', p)).status, 404, p + ' is gone');
+  for (const p of ['/seller/summary', '/seller/products']) assert.equal((await b('GET', p)).status, 403, p + ' is seller-only');
   assert.equal((await b('GET', '/agent/summary')).status, 403, 'agent API is agent-only');
-  assert.equal((await anon('POST', '/seller/products', {})).status, 404);
+  assert.equal((await anon('POST', '/seller/products', {})).status, 401);
   assert.equal((await b('POST', '/rfqs/1/quotes', { price: 5 })).status, 404, 'sellers can no longer quote via the old route');
   // public endpoints stay public
   for (const p of ['/products?limit=1', '/categories', '/facets', '/site', '/policies', '/stats', '/manufacturers', '/search/suggest?q=shirt']) assert.equal((await anon('GET', p)).status, 200, p);
@@ -415,6 +415,38 @@ test('robustness: malformed input never crashes the API', async () => {
   assert.equal((await c('GET', '/does-not-exist')).status, 404);
   assert.equal((await fetch(BASE + '/api/auth/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad json' })).status, 400);
   assert.equal((await fetch(BASE + '/healthz')).status, 200);
+});
+
+test('seller: sign-in, own catalogue (pending approval), order fulfilment, RFQ quoting, isolation', async () => {
+  const a = await admin(), buyer = await newBuyer(), bid = (await buyer('GET', '/auth/me')).data.user.id;
+  const mkSeller = async tag => { const email = `sel${tag}${uniq()}@test.com`, r = await a('POST', '/admin/users', { name: 'Seller ' + tag, email, role: 'seller', password: 'Passw0rd1', company: 'Co ' + tag }); assert.equal(r.status, 201); const c = await client(email, 'Passw0rd1'); return { c, id: r.data.id }; };
+  const s1 = await mkSeller('A'), s2 = await mkSeller('B');
+  assert.equal((await s1.c('GET', '/admin/users')).status, 403, 'seller is not admin');
+  assert.equal((await s1.c('GET', '/agent/summary')).status, 403);
+  const base = { name: `Lifecycle Tee Seller ${uniq()}`, category: 'mens', subcategory: 'mens-hoodies', moq: 50, price_min: 100, price_max: 160, stock_qty: 10, gst_rate: 12, colors: '#111111', sizes: 'S–XL' };
+  assert.equal((await s1.c('POST', '/seller/products', { ...base, name: 'x' })).status, 400);
+  const mk = await s1.c('POST', '/seller/products', base); assert.equal(mk.status, 201);
+  const pid = mk.data.id, mine = (await s1.c('GET', '/seller/products')).data;
+  assert.equal(mine.find(p => p.id === pid).status, 'pending', 'new listings await admin approval');
+  assert.equal((await s2.c('GET', '/seller/products')).data.length, 0, 'sellers only see their own products');
+  assert.equal((await s2.c('GET', `/seller/products/${pid}`)).status, 404); assert.equal((await s2.c('PUT', `/seller/products/${pid}`, base)).status, 404); assert.equal((await s2.c('DELETE', `/seller/products/${pid}`)).status, 404);
+  assert.equal((await s1.c('PUT', `/seller/products/${pid}`, { ...base, price_max: 170, status: 'approved' })).status, 200);
+  assert.equal((await s1.c('GET', `/seller/products/${pid}`)).data.status, 'pending', 'sellers cannot publish themselves');
+  const o = await a('POST', '/admin/orders', { buyer_id: bid, seller_id: s1.id, title: 'Seller order', quantity: 100, unit_price: 100, gst_rate: 5 }); assert.equal(o.status, 201);
+  const orders = (await s1.c('GET', '/seller/orders')).data; assert.equal(orders.length, 1); assert.equal((await s2.c('GET', '/seller/orders')).data.length, 0);
+  assert.equal((await s2.c('PUT', `/seller/orders/${o.data.id}/status`, { status: 'in_production' })).status, 404);
+  assert.equal((await s1.c('PUT', `/seller/orders/${o.data.id}/status`, { status: 'delivered' })).status, 400, 'only the buyer/admin confirm delivery');
+  assert.equal((await s1.c('PUT', `/seller/orders/${o.data.id}/status`, { status: 'shipped', tracking_no: 'TRK1' })).status, 200);
+  assert.equal((await s1.c('PUT', `/seller/orders/${o.data.id}/status`, { status: 'confirmed' })).status, 400, 'cannot go backwards');
+  assert.equal((await s1.c('GET', '/seller/orders')).data[0].tracking_no, 'TRK1');
+  const sum = (await s1.c('GET', '/seller/summary')).data; assert.equal(sum.orders.orders, 1); assert.equal(sum.products.pending, 1);
+  const rfq = await a('POST', '/admin/rfqs', { buyer_id: bid, title: 'Need polos', quantity: 500 }); assert.equal(rfq.status, 201);
+  assert.ok((await s1.c('GET', '/seller/rfqs')).data.some(r => r.id === rfq.data.id));
+  assert.equal((await s1.c('POST', `/seller/rfqs/${rfq.data.id}/quote`, { price: 0 })).status, 400);
+  assert.equal((await s1.c('POST', `/seller/rfqs/${rfq.data.id}/quote`, { price: 120, lead_days: 20 })).status, 201);
+  assert.equal((await s1.c('POST', `/seller/rfqs/${rfq.data.id}/quote`, { price: 110, lead_days: 15 })).status, 200, 'seller can revise a pending quote');
+  assert.equal((await s1.c('GET', '/seller/payouts')).data.orders.length, 1);
+  assert.equal((await s1.c('DELETE', `/seller/products/${pid}`)).status, 200);
 });
 
 // Leave the dev database as we found it: remove every throw-away @test.com account and the records they created.
