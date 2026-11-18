@@ -86,7 +86,7 @@ async function main() {
   // Serve the built React app (client-side routing → index.html).
   if (fs.existsSync(DIST)) {
     app.use(express.static(DIST, { index: false, maxAge: PROD ? '1y' : 0, immutable: PROD, setHeaders: (r, f) => { if (f.endsWith('.html')) r.setHeader('Cache-Control', 'no-cache'); } }));
-    app.get('*', (req, res) => res.sendFile(path.join(DIST, 'index.html')));
+    app.get('*', (req, res) => { res.set('Cache-Control', 'no-store'); res.sendFile(path.join(DIST, 'index.html'), { etag: false, lastModified: false, cacheControl: false }); });
   } else {
     app.get('/', (req, res) => res.type('text').send('API running. Start the React dev server: npm run dev (client on :5173)'));
   }
