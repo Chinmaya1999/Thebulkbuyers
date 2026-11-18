@@ -29,10 +29,10 @@ async function priceCart(items, db = q, discountPct = 0) {
     if (!p || !p.seller_id) { issues.push({ productId: g.productId, message: 'An item in your cart is no longer available' }); continue; }
     const errors = [];
     if (p.stock_qty > 0 && g.qty > p.stock_qty) errors.push(`Only ${p.stock_qty} pcs in stock`);
-    const wholesale = g.qty >= p.moq, tierUnit = unitPrice(p, g.qty), unit = wholesale ? r2(tierUnit * (1 - disc)) : tierUnit, taxable = r2(unit * g.qty), gst = r2(taxable * (p.gst_rate || 0) / 100);
+    const wholesale = g.qty >= p.moq, tierUnit = unitPrice(p, g.qty), unit = wholesale ? r2(tierUnit * (1 - disc)) : tierUnit, taxable = r2(unit * g.qty), gst = 0;
     const base = wholesale ? tiersOf(p)[0].price : unit, customerSavings = wholesale ? r2((tierUnit - unit) * g.qty) : 0;
     products.push({ productId: p.id, slug: p.slug, name: p.name, image: p.image, sku: p.sku, seller_id: p.seller_id, seller_company: p.seller_company, qty: g.qty, lines: g.lines,
-      moq: p.moq, channel: wholesale ? 'wholesale' : 'retail', unit, mrp: p.retail_price, taxable, gst_rate: p.gst_rate || 0, gst, grand: r2(taxable + gst),
+      moq: p.moq, channel: wholesale ? 'wholesale' : 'retail', unit, mrp: p.retail_price, taxable, gst_rate: 0, gst, grand: r2(taxable + gst),
       bulkSavings: wholesale ? r2((base - tierUnit) * g.qty) : 0, customerSavings, customerDiscountPct: wholesale ? r2(disc * 100) : 0, mrpSavings: r2(Math.max(0, p.retail_price - unit) * g.qty), tiers: tiersOf(p), stock_qty: p.stock_qty,
       toWholesale: wholesale ? 0 : p.moq - g.qty, errors });
     errors.forEach(m => issues.push({ productId: p.id, message: `${p.name}: ${m}` }));

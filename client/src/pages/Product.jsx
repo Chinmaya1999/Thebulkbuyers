@@ -60,7 +60,7 @@ export default function Product() {
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>{p.featured ? <span className="badge">Featured</span> : null}{p.discount_pct >= 40 && <span className="badge accent">Bulk −{p.discount_pct}% vs MRP</span>}<span className="badge mute">{p.group_name}</span></div>
         <div><p className="eyebrow">{p.brand || p.seller_company}</p><h1 className="display" style={{ marginTop: 8 }}>{p.name}</h1></div>
         <div className="meta-line"><span>SKU <b>{p.sku}</b></span><span>By <Link to={'/shop?seller=' + p.seller_id} style={{ textDecoration: 'underline' }}><b>{p.seller_company}</b></Link></span><span>MOQ <b>{p.moq} pcs</b></span></div>
-        <div className="pprice"><b className="num">{money2(p.price_min)}{p.price_max !== p.price_min && ` – ${money2(p.price_max)}`}</b><span className="mute">per pc, wholesale (excl. GST)</span><s className="num">MRP {money(p.mrp)}</s></div>
+        <div className="pprice"><b className="num">{money2(p.price_min)}{p.price_max !== p.price_min && ` – ${money2(p.price_max)}`}</b><span className="mute">per pc, wholesale</span><s className="num">MRP {money(p.mrp)}</s></div>
         <div className="pbox" id="order"><BulkMatrix p={p} initialQty={initialQty} onTotals={setTotals} apiRef={apiRef} /></div>
         <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', alignItems: 'center' }}>
           <button className="link" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }} onClick={() => toggleWish(p.id, () => nav('/login?next=' + encodeURIComponent(`/product?p=${p.slug}`)))}><Ic.Heart width="15" style={{ fill: on ? 'currentColor' : 'none' }} />{on ? 'Saved to wishlist' : 'Add to wishlist'}</button>
@@ -73,7 +73,7 @@ export default function Product() {
       <details><summary>Specifications</summary><div className="bd"><table className="spec"><tbody>
         <tr><td>Category</td><td>{[p.group_name, p.category_name, p.sub_name].filter(Boolean).join(' › ')}</td></tr><tr><td>SKU</td><td>{p.sku}</td></tr>{p.brand && <tr><td>Brand</td><td>{p.brand}</td></tr>}<tr><td>Manufacturer</td><td>{p.seller_company}</td></tr>
         {(p.gender || p.age_group) && <tr><td>For</td><td>{[p.gender, p.age_group].filter(Boolean).join(' · ')}</td></tr>}<tr><td>Fit</td><td>{p.fit || '—'}</td></tr><tr><td>Sizes</td><td>{p.size_options.join(', ')}</td></tr><tr><td>Colours</td><td>{p.colors.length}</td></tr>
-        <tr><td>MOQ</td><td>{p.moq} pcs</td></tr><tr><td>Lead time</td><td>{p.lead_days} days (made to order)</td></tr>{p.hsn_code && <tr><td>HSN code</td><td>{p.hsn_code}</td></tr>}<tr><td>GST</td><td>{p.gst_rate}%</td></tr>{p.barcode && <tr><td>Barcode</td><td>{p.barcode}</td></tr>}
+        <tr><td>MOQ</td><td>{p.moq} pcs</td></tr><tr><td>Lead time</td><td>{p.lead_days} days (made to order)</td></tr>{p.hsn_code && <tr><td>HSN code</td><td>{p.hsn_code}</td></tr>}{p.barcode && <tr><td>Barcode</td><td>{p.barcode}</td></tr>}
         <tr><td>Availability</td><td>{p.stock_qty > 0 ? `${p.stock_qty.toLocaleString('en-US')} pcs ready stock` : 'Made to order'}</td></tr></tbody></table></div></details>
       {apparel && <details><summary>Size guide</summary><div className="bd"><p className="mute">Indicative garment measurements in cm. Exact grading is confirmed in the manufacturer’s tech pack — ask for it with your quotation.</p>
         <table className="sg"><thead><tr><th>Size</th><th>Chest</th><th>Length</th></tr></thead><tbody>{SIZE_GUIDE.map(r => <tr key={r[0]}>{r.map(c => <td key={c}>{c}</td>)}</tr>)}</tbody></table></div></details>}
@@ -86,7 +86,7 @@ export default function Product() {
     {data.related.length > 0 && <section className="section tight" style={{ paddingBottom: 90 }}><div className="sec-head"><div><p className="eyebrow">You may also like</p><h2 className="h-lg">Related products</h2></div></div>
       <Carousel label="Related products">{data.related.map(x => <ProductCard key={x.id} p={x} />)}</Carousel></section>}
   </div>
-    <div className="stickybar" role="region" aria-label="Order summary"><div><b className="num" style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{tot} pcs</b><div className="label">{tot > 0 ? money2(tot * totals.unit) + ' excl. GST' : 'Select quantities above'}</div></div>
+    <div className="stickybar" role="region" aria-label="Order summary"><div><b className="num" style={{ fontFamily: 'var(--serif)', fontSize: 22 }}>{tot} pcs</b><div className="label">{tot > 0 ? money2(tot * totals.unit) : 'Select quantities above'}</div></div>
       <button className="btn" onClick={() => tot > 0 ? apiRef.current?.add() : document.getElementById('order')?.scrollIntoView({ behavior: 'smooth' })}>{tot > 0 ? 'Add to cart' : 'Select sizes'}</button></div>
   </div>;
 }

@@ -18,8 +18,8 @@ const TILES = [
   { label: 'T-Shirts & Polos', match: /(^|\s)(t-shirts?|polo)/i }, { label: 'Shirts & Tops', match: /(shirts|tops|blouses|tunics)$/i, not: /(t-shirts|sweatshirts)/i },
   { label: 'Jeans & Trousers', match: /(jeans|trousers|pants|chinos|jeggings|palazzos|joggers)/i }, { label: 'Dresses & Gowns', match: /(dress|gown)/i },
   { label: 'Jackets & Hoodies', match: /(jacket|hoodie|windcheater|parka|blazer)/i }, { label: 'Sweaters & Knitwear', match: /(sweater|cardigan|woollen|beanie|knit)/i },
-  { label: 'Activewear', cat: 'sportswear' }, { label: 'Innerwear & Nightwear', cat: 'innerwear' }, { label: 'Ethnic & Traditional Wear', cat: 'ethnic' },
-  { label: 'Uniforms & Workwear', cat: 'uniforms' }, { label: 'Footwear & Shoes', cat: 'footwear' }, { label: 'Bags & Luggage', match: /(bag|backpack|wallet|clutch|purse)/i, only: 'accessories' }, { label: 'Fashion Accessories', cat: 'accessories' }
+  { label: 'Activewear', cat: 'sportswear' }, { label: 'Innerwear & Nightwear', cat: 'innerwear' },
+  { label: 'Footwear & Shoes', cat: 'footwear' }
 ];
 const season = () => { const mo = new Date().getMonth() + 1; return [11, 12, 1, 2].includes(mo) ? 'Winter' : [3, 4, 5, 6].includes(mo) ? 'Summer' : mo === 10 ? 'Festive' : 'Autumn'; };
 const COLLECTIONS = [['New arrivals', 'sort=new'], ['Trending wholesale', 'sort=popular'], ['Best sellers', 'sort=bestseller'], ['Premium collections', 'sort=price_desc'], [`Seasonal essentials · ${season()}`, `season=${season()}&sort=popular`], ['Exclusive bulk deals', 'sort=deal']];

@@ -14,12 +14,13 @@ const FROM = `FROM products p LEFT JOIN categories c ON c.id=p.category LEFT JOI
 const shape = p => p && ({ ...p, size_options: p.size_options || parseSizes(p.sizes), gallery: p.gallery || [], mrp: p.retail_price, price_tiers: tiersOf(p),
   discount_pct: p.retail_price > 0 ? Math.max(0, Math.round((1 - p.price_min / p.retail_price) * 100)) : 0 });
 
+const HIDDEN = ['accessories', 'ethnic', 'uniforms'];
 const list = v => (Array.isArray(v) ? v : String(v || '').split(',')).map(x => String(x).trim()).filter(Boolean).slice(0, 30);
 const FABRICS = { Cotton: 'cotton', Polyester: 'poly', Nylon: 'nylon', Denim: 'denim', Fleece: 'fleece', Wool: 'wool', Silk: 'silk', Linen: 'linen', 'Rayon / Viscose': '(rayon|viscose)', Leather: 'leather', Canvas: 'canvas', Acrylic: 'acrylic', 'Spandex / Elastane': '(spandex|elastane)', Georgette: 'georgette' };
 
 // Category scope + free-text search (used by both listings and facets)
 function scope(req) {
-  const where = ["p.status='approved'"], args = [];
+  const where = ["p.status='approved'", "p.category <> ALL('{accessories,ethnic,uniforms}'::text[])"], args = [];
   const cat = str(req.query.cat, 60); if (cat) { where.push('p.category=?'); args.push(cat); }
   const sub = str(req.query.sub, 80); if (sub) { where.push('p.subcategory=?'); args.push(sub); }
   const subs = list(req.query.subs); if (subs.length) { where.push('p.subcategory = ANY(?::text[])'); args.push(subs); }
@@ -53,7 +54,7 @@ router.get('/categories', async (req, res) => {
       WHEN 2 THEN (SELECT COUNT(*) FROM products p WHERE p.subcategory=c.id AND p.status='approved')
       WHEN 1 THEN (SELECT COUNT(*) FROM products p WHERE p.category=c.id AND p.status='approved')
       ELSE (SELECT COUNT(*) FROM products p JOIN categories k ON k.id=p.category WHERE k.parent_id=c.id AND p.status='approved') END AS count
-    FROM categories c ORDER BY c.level, c.sort, c.name`));
+    FROM categories c WHERE c.id <> ALL('{accessories,ethnic,uniforms}'::text[]) AND COALESCE(c.parent_id,'') <> ALL('{accessories,ethnic,uniforms}'::text[]) ORDER BY c.level, c.sort, c.name`));
 });
 
 router.get('/products', async (req, res) => {
@@ -112,8 +113,8 @@ router.get('/search/suggest', async (req, res) => {
   const s = str(req.query.q, 60); if (s.length < 2) return res.json({ products: [], categories: [], brands: [], manufacturers: [] });
   const like = `%${s}%`;
   const [products, categories, brands, manufacturers] = await Promise.all([
-    q.all(`SELECT p.slug,p.name,p.sku,p.image,p.price_min,p.price_max,p.moq,sc.name sub_name FROM products p LEFT JOIN categories sc ON sc.id=p.subcategory WHERE p.status='approved' AND (p.name ILIKE ? OR p.sku ILIKE ? OR p.brand ILIKE ? OR p.fabric ILIKE ? OR sc.name ILIKE ?) ORDER BY (p.name ILIKE ?) DESC, p.views DESC LIMIT 6`, like, like, like, like, like, `${s}%`),
-    q.all(`SELECT c.id,c.name,c.level,c.parent_id,(SELECT name FROM categories k WHERE k.id=c.parent_id) parent_name FROM categories c WHERE c.level IN (1,2) AND c.name ILIKE ? ORDER BY c.level, c.name LIMIT 6`, like),
+    q.all(`SELECT p.slug,p.name,p.sku,p.image,p.price_min,p.price_max,p.moq,sc.name sub_name FROM products p LEFT JOIN categories sc ON sc.id=p.subcategory WHERE p.status='approved' AND p.category <> ALL('{accessories,ethnic,uniforms}'::text[]) AND (p.name ILIKE ? OR p.sku ILIKE ? OR p.brand ILIKE ? OR p.fabric ILIKE ? OR sc.name ILIKE ?) ORDER BY (p.name ILIKE ?) DESC, p.views DESC LIMIT 6`, like, like, like, like, like, `${s}%`),
+    q.all(`SELECT c.id,c.name,c.level,c.parent_id,(SELECT name FROM categories k WHERE k.id=c.parent_id) parent_name FROM categories c WHERE c.level IN (1,2) AND c.id <> ALL('{accessories,ethnic,uniforms}'::text[]) AND COALESCE(c.parent_id,'') <> ALL('{accessories,ethnic,uniforms}'::text[]) AND c.name ILIKE ? ORDER BY c.level, c.name LIMIT 6`, like),
     q.all(`SELECT brand v, COUNT(*) n FROM products WHERE status='approved' AND brand ILIKE ? GROUP BY brand LIMIT 4`, like),
     q.all(`SELECT u.id, u.company FROM users u WHERE u.role='seller' AND u.status='active' AND u.company ILIKE ? AND EXISTS (SELECT 1 FROM products p WHERE p.seller_id=u.id AND p.status='approved') LIMIT 3`, like)
   ]);

@@ -27,7 +27,7 @@ export default function Checkout() {
   const t = priced?.totals;
 
   if (done) return <div className="container" style={{ maxWidth: 760, padding: '70px var(--gut)' }}><p className="eyebrow">Order placed</p><h1 className="h-xl" style={{ margin: '14px 0 20px' }}>Thank you.</h1>
-    <p className="lead">{done.orders.length} order{done.orders.length > 1 ? 's' : ''} created — {done.orders.map(o => '#' + o.id).join(', ')}. Total {money2(done.grand)} incl. GST ({pay === 'cod' ? 'pay on delivery' : 'bank transfer details follow on confirmation'}). Each manufacturer has been notified.</p>
+    <p className="lead">{done.orders.length} order{done.orders.length > 1 ? 's' : ''} created — {done.orders.map(o => '#' + o.id).join(', ')}. Total {money2(done.grand)} ({pay === 'cod' ? 'pay on delivery' : 'bank transfer details follow on confirmation'}). Each manufacturer has been notified.</p>
     <div style={{ display: 'flex', gap: 12, marginTop: 30, flexWrap: 'wrap' }}><Link className="btn" to="/dashboard/orders">Track my orders</Link><Link className="btn ghost" to="/dashboard/invoices">View invoices</Link><Link className="btn ghost" to="/shop">Continue shopping</Link></div></div>;
   if (!items.length) return <div className="container"><div className="empty"><h3>Your cart is empty</h3><Link className="btn" to="/shop">Explore collections</Link></div></div>;
   if (user === undefined) return null;

@@ -11,7 +11,7 @@ import { AnimatePresence, m } from './motion.jsx';
 
 export const Logo = ({ light, h }) => <Link to="/" className="logo" aria-label="Bulk Buyers — home"><img src={light ? '/brand/logo-light.png' : '/brand/logo.png'} alt="Bulk Buyers" width="150" height="46" style={h ? { height: h } : undefined} /></Link>;
 
-const NAV = [['Men', 'mens'], ['Women', 'womens'], ['Kids & Baby', 'kids'], ['Footwear', 'footwear'], ['Bags & Accessories', 'accessories'], ['Sportswear', 'sportswear'], ['Innerwear', 'innerwear'], ['Ethnic Wear', 'ethnic'], ['Uniforms', 'uniforms'], ['Winter', 'winter']];
+const NAV = [['Men', 'mens'], ['Women', 'womens'], ['Kids & Baby', 'kids'], ['Footwear', 'footwear'], ['Sportswear', 'sportswear'], ['Innerwear', 'innerwear'], ['Winter', 'winter']];
 
 function Announce() {
   const [i, setI] = useState(0), site = useSite(), MSGS = site.announcements.map(a => [a.title, a.text]);

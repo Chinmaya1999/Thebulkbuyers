@@ -8,10 +8,9 @@ export function Summary({ t, pricing, cta }) {
   return <aside className="summary" aria-label="Order summary"><h3 className="h-sm" style={{ fontSize: 26 }}>Order summary</h3>
     {!t ? <div className="skel" style={{ height: 160 }} /> : <div className="sumbox" style={{ opacity: pricing ? .55 : 1, transition: 'opacity .2s' }}>
       <div><span>Quantity</span><span className="num">{t.qty.toLocaleString('en-US')} pcs · {t.items} variants</span></div>
-      <div><span>Subtotal (excl. GST)</span><span className="num">{money2(t.subtotal)}</span></div>
+      <div><span>Subtotal</span><span className="num">{money2(t.subtotal)}</span></div>
       {t.customerSavings > 0 && <div className="save"><span>Your negotiated discount</span><span className="num">− {money2(t.customerSavings)}</span></div>}
       {t.bulkSavings > 0 && <div className="save"><span>Bulk discount applied</span><span className="num">− {money2(t.bulkSavings)}</span></div>}
-      <div><span>GST</span><span className="num">{money2(t.gst)}</span></div>
       <div><span>Shipping</span><span className="mute">Confirmed on dispatch</span></div>
       <div className="grand"><span>Total</span><span className="num">{money2(t.grand)}</span></div>
       {t.mrpSavings > 0 && <p className="mute" style={{ fontSize: 12 }}>You save {money2(t.mrpSavings)} against MRP.</p>}</div>}
@@ -36,7 +35,7 @@ export default function CartPage() {
           <div className="vlines">{items.filter(i => i.productId === g.productId).map(i => <div className="vline" key={i.key}><span className="cname"><i style={{ background: i.color }} />{i.color ? colorName(i.color) : 'Standard'} · {i.size}</span>
             <span className="qstep"><button aria-label="Decrease" onClick={() => setQty(i.key, i.qty - 1)}><Ic.Minus width="13" /></button><input type="number" min="0" value={i.qty} aria-label={`Quantity ${i.size}`} onChange={e => setQty(i.key, +e.target.value || 0)} /><button aria-label="Increase" onClick={() => setQty(i.key, i.qty + 1)}><Ic.Plus width="13" /></button></span>
             <button className="rm" onClick={() => remove(i.key)}>remove</button></div>)}</div></div>
-        <div className="right" style={{ textAlign: 'right', display: 'grid', alignContent: 'space-between', justifyItems: 'end' }}><div><b className="num" style={{ fontSize: 20 }}>{money2(g.taxable)}</b><div className="label">{g.qty} pcs · GST {g.gst_rate}% {money2(g.gst)}</div></div><button className="rm" onClick={() => removeProduct(g.productId)}>Remove product</button></div>
+        <div className="right" style={{ textAlign: 'right', display: 'grid', alignContent: 'space-between', justifyItems: 'end' }}><div><b className="num" style={{ fontSize: 20 }}>{money2(g.taxable)}</b><div className="label">{g.qty} pcs</div></div><button className="rm" onClick={() => removeProduct(g.productId)}>Remove product</button></div>
       </m.div>)}</AnimatePresence>
       <Link to="/shop" className="link" style={{ display: 'inline-block', marginTop: 26 }}>Continue shopping</Link></div>
       <Summary t={t} pricing={pricing} cta={<><button className="btn block" disabled={blocked || pricing} onClick={() => nav('/checkout')}>Proceed to checkout</button>{priced?.issues.map(i => <p className="form-err" key={i.message}>{i.message}</p>)}<p className="label" style={{ textAlign: 'center' }}>Invoice with GST breakdown for every order</p></>} />

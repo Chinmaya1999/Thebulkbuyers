@@ -18,7 +18,7 @@ export default function BulkMatrix({ p, compact, initialQty = 0, onTotals, apiRe
   const lines = useMemo(() => colors.flatMap(c => sizes.map(s => ({ color: c, size: s, qty: Math.max(0, Math.trunc(Number(q[k(c, s)]) || 0)) }))).filter(l => l.qty > 0), [q, colors, sizes]);
   const total = lines.reduce((s, l) => s + l.qty, 0), items = lines.length;
   const tiers = p.price_tiers || [], wholesale = total >= p.moq, tier = wholesale ? [...tiers].reverse().find(t => total >= t.min_qty) : null;
-  const unit = wholesale ? tier.price : p.retail_price, base = tiers[0]?.price ?? unit, taxable = unit * total, gst = taxable * (p.gst_rate || 0) / 100;
+  const unit = wholesale ? tier.price : p.retail_price, base = tiers[0]?.price ?? unit, taxable = unit * total, gst = 0;
   const bulk = wholesale ? (base - unit) * total : 0, mrpSave = Math.max(0, p.mrp - unit) * total;
   const overStock = p.stock_qty > 0 && total > p.stock_qty;
   useEffect(() => { onTotals?.({ total, unit, wholesale }); }, [total, unit, wholesale]); // eslint-disable-line
@@ -56,7 +56,6 @@ export default function BulkMatrix({ p, compact, initialQty = 0, onTotals, apiRe
       <div><span>Price per unit {wholesale ? '(tier)' : '(retail)'}</span><span className="num">{money2(unit)}</span></div>
       <div><span>Subtotal</span><span className="num">{money2(taxable)}</span></div>
       {bulk > 0 && <div className="save"><span>Bulk discount</span><span className="num">− {money2(bulk)}</span></div>}
-      <div><span>GST ({p.gst_rate}%)</span><span className="num">{money2(gst)}</span></div>
       <div className="grand"><span>Grand total</span><span className="num">{money2(taxable + gst)}</span></div>
       {mrpSave > 0 && <p className="mute" style={{ fontSize: 12 }}>You save {money2(mrpSave)} against MRP {money2(p.mrp)}/pc.</p>}</div></div>
 

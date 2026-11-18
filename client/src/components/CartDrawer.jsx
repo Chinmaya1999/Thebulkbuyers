@@ -28,7 +28,7 @@ export default function CartDrawer() {
         {items.length > 0 && !priced && <div className="skel" style={{ height: 120, margin: '20px 0' }} />}
       </div>
       {items.length > 0 && t && <div style={{ padding: '18px 24px', borderTop: '1px solid var(--ink)', display: 'grid', gap: 10, background: '#fff' }}>
-        <div className="sumbox"><div><span>Subtotal</span><b className="num">{money2(t.subtotal)}</b></div>{t.customerSavings > 0 && <div className="save"><span>Your negotiated discount</span><span className="num">− {money2(t.customerSavings)}</span></div>}{t.bulkSavings > 0 && <div className="save"><span>Bulk discount</span><span className="num">− {money2(t.bulkSavings)}</span></div>}<div><span>GST</span><span className="num">{money2(t.gst)}</span></div><div className="grand"><span>Total</span><span className="num">{money2(t.grand)}</span></div></div>
+        <div className="sumbox"><div><span>Subtotal</span><b className="num">{money2(t.subtotal)}</b></div>{t.customerSavings > 0 && <div className="save"><span>Your negotiated discount</span><span className="num">− {money2(t.customerSavings)}</span></div>}{t.bulkSavings > 0 && <div className="save"><span>Bulk discount</span><span className="num">− {money2(t.bulkSavings)}</span></div>}<div className="grand"><span>Total</span><span className="num">{money2(t.grand)}</span></div></div>
         <div className="acts"><button className="btn block" disabled={pricing || priced.issues.length > 0} onClick={() => { setOpen(false); nav('/checkout'); }}>Checkout</button><button className="btn ghost block" onClick={() => { setOpen(false); nav('/cart'); }}>View full cart</button></div></div>}
     </m.aside></>}</AnimatePresence>;
 }
