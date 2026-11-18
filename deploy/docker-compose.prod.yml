@@ -1,0 +1,22 @@
+# Used on the EC2 server by the CI/CD pipeline (copied to ~/thebulkbuyers/docker-compose.yml).
+# Secrets come from ./.env, which the pipeline writes from the PROD_ENV_FILE GitHub secret.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tbb
+      POSTGRES_DB: bulkbuyers
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tbb -d bulkbuyers"]
+      interval: 5s
+      retries: 10
+  app:
+    image: ${APP_IMAGE}
+    restart: unless-stopped
+    depends_on: { db: { condition: service_healthy } }
+    env_file: .env
+    ports: ["80:3000"]
+volumes: { pgdata: {} }

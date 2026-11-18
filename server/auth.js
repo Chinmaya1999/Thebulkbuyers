@@ -5,7 +5,7 @@ const COOKIE = 'tbb_token';
 // `tv` is the user's token_version: bumping it (password change/reset) revokes every existing session.
 const sign = u => jwt.sign({ id: u.id, role: u.role, tv: u.token_version || 0 }, process.env.JWT_SECRET, { expiresIn: '7d' });
 const setCookie = (res, token) => res.cookie(COOKIE, token, {
-  httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 7 * 864e5, path: '/'
+  httpOnly: true, sameSite: 'lax', secure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production', maxAge: 7 * 864e5, path: '/'
 });
 
 async function load(req) {
