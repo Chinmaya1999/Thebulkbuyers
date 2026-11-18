@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
     if (u) await q.run("UPDATE users SET failed_logins=failed_logins+1, locked_until=CASE WHEN failed_logins+1>=? THEN now()+interval '15 minutes' ELSE locked_until END WHERE id=?", MAX_FAILS, u.id);
     return res.status(401).json({ error: 'Incorrect email or password' });
   }
-  if (u && !['admin', 'buyer'].includes(u.role)) return res.status(403).json({ error: 'This account type is managed by the admin team.' });
+  if (u && !['admin', 'buyer', 'agent'].includes(u.role)) return res.status(403).json({ error: 'This account type is managed by the admin team.' });
   if (u.status === 'suspended') return res.status(403).json({ error: 'This account is suspended. Contact support.' });
   await q.run('UPDATE users SET last_login=now(), failed_logins=0, locked_until=NULL WHERE id=?', u.id);
   setCookie(res, sign(u));

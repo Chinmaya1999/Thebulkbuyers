@@ -61,7 +61,8 @@ test('authz: sign-in required endpoints, buyer-only endpoints, removed seller/ag
     assert.equal((await a(m, p, {})).status, 403, `admin cannot act as buyer: ${m} ${p}`);
   }
   assert.equal((await anon('GET', '/auth/me')).data.user, null);
-  for (const p of ['/seller/summary', '/seller/products', '/agent/summary']) assert.equal((await b('GET', p)).status, 404, p + ' is gone');
+  for (const p of ['/seller/summary', '/seller/products']) assert.equal((await b('GET', p)).status, 404, p + ' is gone');
+  assert.equal((await b('GET', '/agent/summary')).status, 403, 'agent API is agent-only');
   assert.equal((await anon('POST', '/seller/products', {})).status, 404);
   assert.equal((await b('POST', '/rfqs/1/quotes', { price: 5 })).status, 404, 'sellers can no longer quote via the old route');
   // public endpoints stay public
@@ -160,7 +161,7 @@ test('authn: suspended accounts are signed out immediately and blocked from logi
   assert.equal((await a('PUT', `/admin/users/${uid}`, { status: 'active' })).status, 200);
   assert.equal((await (await client())('POST', '/auth/login', { email: u.email, password: 'Passw0rd1' })).status, 200);
   const email = `s${uniq()}@test.com`, mk = await a('POST', '/admin/users', { name: 'Sup', email, role: 'agent', password: 'Passw0rd1' }); assert.equal(mk.status, 201);
-  assert.equal((await (await client())('POST', '/auth/login', { email, password: 'Passw0rd1' })).status, 403, 'agent cannot sign in');
+  const ag = await client(); assert.equal((await ag('POST', '/auth/login', { email, password: 'Passw0rd1' })).status, 200, 'agent can sign in'); assert.equal((await ag('GET', '/agent/summary')).status, 200); assert.equal((await ag('GET', '/admin/users')).status, 403, 'agent is not admin');
   assert.equal((await a('DELETE', `/admin/users/${mk.data.id}`)).status, 200);
 });
 

@@ -72,6 +72,7 @@ async function main() {
   app.use('/api', require('./routes/trade'));
   app.use('/api/account', require('./routes/account'));
   app.use('/api/admin', require('./routes/admin'));
+  app.use('/api/agent', require('./routes/agent'));
   app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
 
   const origin = req => process.env.PUBLIC_URL || `${req.protocol}://${req.get('host')}`;
